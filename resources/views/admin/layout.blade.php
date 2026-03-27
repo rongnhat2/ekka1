@@ -31,20 +31,23 @@
         <header id="page-topbar">
             <div class="navbar-header">
 
-                <div class="d-flex align-items-left"> 
+                <div class="d-flex align-items-left">
                 </div>
 
                 <div class="d-flex align-items-center">
                     <div class="dropdown d-inline-block ml-2">
                         <button type="button" class="btn header-item waves-effect" id="page-header-user-dropdown"
                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <img class="rounded-circle header-profile-user" src="assets/images/users/avatar-3.jpg" >
+                            <img class="rounded-circle header-profile-user" src="assets/images/users/avatar-3.jpg">
                             <span class="d-none d-sm-inline-block ml-1">Admin.</span>
                             <i class="mdi mdi-chevron-down d-none d-sm-inline-block"></i>
                         </button>
-                        <div class="dropdown-menu dropdown-menu-right"> 
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <form id="logout-form" action="{{ route('admin.logout') }}" method="POST" class="d-none">
+                                @csrf </form>
                             <a class="dropdown-item d-flex align-items-center justify-content-between"
-                                href="javascript:void(0)">
+                                href="javascript:void(0)"
+                                onclick="event.preventDefault();document.getElementById('logout-form').submit();">
                                 <span>Log Out</span>
                             </a>
                         </div>
