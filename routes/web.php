@@ -29,3 +29,44 @@ Route::get('/reset', 'Customer\DisplayController@reset')->name('customer.view.re
 
 Route::get('profile', 'Customer\DisplayController@profile')->name('customer.view.profile');
 Route::get('checkout', 'Customer\DisplayController@checkout')->name('customer.view.checkout');
+
+
+
+Route::middleware(['AuthAdmin:auth'])->group(function () {
+    Route::prefix('admin')->group(function () {
+        Route::get('/login', 'Admin\DisplayController@login')->name('admin.login');
+        Route::post('/login', 'Admin\AuthController@login')->name('admin.login');
+    });
+});
+Route::middleware(['AuthAdmin:admin'])->group(function () {
+    Route::prefix('admin')->group(function () {
+        Route::post('logout', 'Admin\AuthController@logout')->name('admin.logout');
+
+        Route::get('/', 'Admin\DisplayController@statistic')->name('admin.statistic');
+
+        Route::prefix('carousel')->group(function () {
+            Route::get('/', 'Admin\CarouselController@index')->name('admin.carousel.index');
+        });
+        Route::prefix('news')->group(function () {
+            Route::get('/', 'Admin\NewsController@index')->name('admin.news.index');
+        });
+        Route::prefix('category')->group(function () {
+            Route::get('/', 'Admin\CategoryController@index')->name('admin.category.index');
+        });
+        Route::prefix('trademark')->group(function () {
+            Route::get('/', 'Admin\TrademarkController@index')->name('admin.trademark.index');
+        });
+        Route::prefix('product')->group(function () {
+            Route::get('/', 'Admin\ProductController@index')->name('admin.product.index');
+        });
+        Route::prefix('discount')->group(function () {
+            Route::get('/', 'Admin\ProductController@discount')->name('admin.discount.index');
+        });
+        Route::prefix('warehouse')->group(function () {
+            Route::get('/', 'Admin\WarehouseController@index')->name('admin.warehouse.index');
+        });
+        Route::prefix('order')->group(function () {
+            Route::get('/', 'Admin\OrderController@index')->name('admin.order.index');
+        });
+    });
+});
