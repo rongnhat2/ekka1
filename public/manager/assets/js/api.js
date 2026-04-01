@@ -67,29 +67,29 @@ const Api = {
 //Category
 (() => {
     Api.Category.GetAll = () => $.ajax({
-        url: `/apip/category/get`,
+        url: `/api/admin/category/get`,
         method: 'GET',
     });
     Api.Category.Store = (data) => $.ajax({
-        url: `/apip/category/store`,
+        url: `/api/admin/category/store`,
         method: 'POST',
         data: data,
         contentType: false,
         processData: false,
     });
     Api.Category.getOne = (id) => $.ajax({
-        url: `/apip/category/get-one/${id}`,
+        url: `/api/admin/category/get-one/${id}`,
         method: 'GET',
     });
     Api.Category.Update = (data) => $.ajax({
-        url: `/apip/category/update`,
+        url: `/api/admin/category/update`,
         method: 'POST',
         data: data,
         contentType: false,
         processData: false,
     });
     Api.Category.Delete = (id) => $.ajax({
-        url: `/apip/category/delete/${id}`,
+        url: `/api/admin/category/delete/${id}`,
         method: 'GET',
     });
 })();
