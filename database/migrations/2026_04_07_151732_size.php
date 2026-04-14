@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class News extends Migration
+class Size extends Migration
 {
     /**
      * Run the migrations.
@@ -13,13 +13,10 @@ class News extends Migration
      */
     public function up()
     {
-        Schema::create('news', function (Blueprint $table) {
+        //
+        Schema::create('size', function (Blueprint $table) {
             $table->increments('id');
-            $table->longtext('image');
-            $table->string('title');
-            $table->string('slug');
-            $table->longtext('description');
-            $table->longtext('detail');
+            $table->string('name');
             $table->integer('status')->default(1);
             $table->timestamp('created_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
@@ -33,6 +30,6 @@ class News extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('news');
+        Schema::dropIfExists('size');
     }
 }

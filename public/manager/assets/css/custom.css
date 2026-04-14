@@ -781,3 +781,27 @@ h1,h2,h3,h4,h5,h6{
     max-width: 800px !important;
 }
 
+.product-var-section {
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 12px;
+    background: #f9f9f9;
+    margin-bottom: 20px;
+}
+
+.product-var-row {
+    background: #fff;
+    border-radius: 4px;
+    padding: 8px 10px;
+    border: 1px solid #eaeaea;
+    position: relative;
+}
+
+.product-var-row:not(:last-child) {
+    margin-bottom: 10px;
+}
+
+.btn-remove-var {
+    margin-top: 25px;
+    transition: background 0.2s;
+}

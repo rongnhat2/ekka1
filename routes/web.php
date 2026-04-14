@@ -22,14 +22,23 @@ Route::get('category', 'Customer\DisplayController@category')->name('customer.vi
 Route::get('cart', 'Customer\DisplayController@cart')->name('customer.view.cart');
 
 
-Route::get('/login', 'Customer\DisplayController@login')->name('customer.view.login');
-Route::get('/register', 'Customer\DisplayController@register')->name('customer.view.register');
-Route::get('/forgot', 'Customer\DisplayController@forgot')->name('customer.view.forgot');
-Route::get('/reset', 'Customer\DisplayController@reset')->name('customer.view.reset');
+Route::middleware(['AuthCustomer:auth'])->group(function () {
+    Route::get('/login', 'Customer\DisplayController@login')->name('customer.view.login');
+    Route::get('/register', 'Customer\DisplayController@register')->name('customer.view.register');
+    Route::get('/forgot', 'Customer\DisplayController@forgot')->name('customer.view.forgot');
+    Route::post('/forgot', 'Customer\AuthController@forgot')->name('customer.forgot');
+    // đổi mật khẩu người dùng
+    Route::get('/reset', 'Customer\DisplayController@reset')->name('customer.view.reset');
+    Route::post('/reset', 'Customer\AuthController@reset')->name('customer.reset');
 
-Route::get('profile', 'Customer\DisplayController@profile')->name('customer.view.profile');
-Route::get('checkout', 'Customer\DisplayController@checkout')->name('customer.view.checkout');
-
+    Route::post('/register', 'Customer\AuthController@register')->name('customer.register');
+    Route::post('login', 'Customer\AuthController@login')->name('customer.login');
+});
+Route::middleware(['AuthCustomer:logined'])->group(function () {
+    Route::post('logout', 'Customer\AuthController@logout')->name('customer.logout');
+    Route::get('profile', 'Customer\DisplayController@profile')->name('customer.view.profile');
+    Route::get('checkout', 'Customer\DisplayController@checkout')->name('customer.view.checkout');
+});
 
 
 Route::middleware(['AuthAdmin:auth'])->group(function () {
@@ -47,14 +56,20 @@ Route::middleware(['AuthAdmin:admin'])->group(function () {
         Route::prefix('carousel')->group(function () {
             Route::get('/', 'Admin\CarouselController@index')->name('admin.carousel.index');
         });
-        Route::prefix('news')->group(function () {
-            Route::get('/', 'Admin\NewsController@index')->name('admin.news.index');
-        });
         Route::prefix('category')->group(function () {
             Route::get('/', 'Admin\CategoryController@index')->name('admin.category.index');
         });
-        Route::prefix('trademark')->group(function () {
-            Route::get('/', 'Admin\TrademarkController@index')->name('admin.trademark.index');
+        Route::prefix('brand')->group(function () {
+            Route::get('/', 'Admin\BrandController@index')->name('admin.brand.index');
+        });
+        Route::prefix('color')->group(function () {
+            Route::get('/', 'Admin\ColorController@index')->name('admin.color.index');
+        });
+        Route::prefix('size')->group(function () {
+            Route::get('/', 'Admin\SizeController@index')->name('admin.size.index');
+        });
+        Route::prefix('material')->group(function () {
+            Route::get('/', 'Admin\MaterialController@index')->name('admin.material.index');
         });
         Route::prefix('product')->group(function () {
             Route::get('/', 'Admin\ProductController@index')->name('admin.product.index');

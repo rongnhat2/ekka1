@@ -44,6 +44,11 @@
                         <div class="ec-header-bottons">
                             <!-- Header User Start -->
                             <div class="ec-header-user dropdown ">
+                                <?php if ($customer_data['is_login']): ?>
+                                <a title="My Account" href="{{ route("customer.view.profile") }}">
+                                    <i class="far fa-user"></i><?php    echo $customer_data['name'] ?>
+                                </a>
+                                <?php else: ?>
                                 <button class="dropdown-toggle" data-bs-toggle="dropdown">
                                     <i class="far fa-user"></i>
                                 </button>
@@ -51,6 +56,7 @@
                                     <li><a class="dropdown-item" href="register">Đăng kí</a></li>
                                     <li><a class="dropdown-item" href="login">Đăng nhập</a></li>
                                 </ul>
+                                <?php endif ?>
                             </div>
                             <a href="/cart" class="ec-header-btn ec-header-wishlist">
                                 <div class="header-icon"><i class="fas fa-shopping-cart"></i></div>
@@ -89,12 +95,19 @@
                         <div class="align-self-center">
                             <div class="ec-header-bottons">
                                 <div class="ec-header-user dropdown">
+                                    <?php if ($customer_data['is_login']): ?>
+                                    <a title="My Account" href="{{ route("customer.view.profile") }}"
+                                        class="d-flex align-items-center">
+                                        <i class="far fa-user m-r-10"></i><?php    echo $customer_data['name'] ?>
+                                    </a>
+                                    <?php else: ?>
                                     <button class="dropdown-toggle" data-bs-toggle="dropdown"><i
                                             class="far fa-user"></i></button>
                                     <ul class="dropdown-menu dropdown-menu-right">
                                         <li><a class="dropdown-item" href="register">Đăng kí</a></li>
                                         <li><a class="dropdown-item" href="login">Đăng nhập</a></li>
                                     </ul>
+                                    <?php endif ?>
                                 </div>
                                 <a href="/cart" class="ec-header-btn  ">
                                     <div class="header-icon"><i class="fas fa-shopping-cart"></i></div>

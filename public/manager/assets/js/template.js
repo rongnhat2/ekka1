@@ -1,51 +1,127 @@
 const Template = {
     Category: {
-        Create(){
+        Create() {
             return `<div class="error-log"></div>
                     <div class="form-group">
                         <label for="name">Tên danh mục</label>
                         <input type="text" class="form-control data-name" id="name" placeholder="Tên danh mục">
-                    </div>`
+                    </div>`;
         },
-        Update(){
+        Update() {
             return `<input type="hidden" class="form-control data-id" required="">
                     <div class="error-log"></div>
                     <div class="form-group">
                         <label for="name">Tên danh mục</label>
                         <input type="text" class="form-control data-name" id="name" placeholder="Tên danh mục">
-                    </div>`
+                    </div>`;
         },
-        Delete(){
-            return `<div class="wrapper d-flex justify-center"><img src="/manager/images_global/funny.gif" alt=""></div>`
-        }
+        Delete() {
+            return `<div class="wrapper d-flex justify-center"><img src="/manager/images_global/funny.gif" alt=""></div>`;
+        },
     },
-    Trademark: {
-        Create(){
+    Size: {
+        Create() {
+            return `<div class="error-log"></div>
+                    <div class="form-group">
+                        <label for="name">Tên kích thước</label>
+                        <input type="text" class="form-control data-name" id="name" placeholder="Tên kích thước">
+                    </div>`;
+        },
+        Update() {
+            return `<input type="hidden" class="form-control data-id" required="">
+                    <div class="error-log"></div>
+                    <div class="form-group">
+                        <label for="name">Tên kích thước</label>
+                        <input type="text" class="form-control data-name" id="name" placeholder="Tên kích thước">
+                    </div>`;
+        },
+        Delete() {
+            return `<div class="wrapper d-flex justify-center"><img src="/manager/images_global/funny.gif" alt=""></div>`;
+        },
+    },
+    Material: {
+        Create() {
+            return `<div class="error-log"></div>
+                    <div class="form-group">
+                        <label for="name">Tên chất liệu</label>
+                        <input type="text" class="form-control data-name" id="name" placeholder="Tên chất liệu">
+                    </div>`;
+        },
+        Update() {
+            return `<input type="hidden" class="form-control data-id" required="">
+                    <div class="error-log"></div>
+                    <div class="form-group">
+                        <label for="name">Tên chất liệu</label>
+                        <input type="text" class="form-control data-name" id="name" placeholder="Tên chất liệu">
+                    </div>`;
+        },
+        Delete() {
+            return `<div class="wrapper d-flex justify-center"><img src="/manager/images_global/funny.gif" alt=""></div>`;
+        },
+    },
+    Color: {
+        Create() {
+            return `<div class="error-log"></div>
+                    <div class="form-group">
+                        <label for="name">Tên màu</label>
+                        <input type="text" class="form-control data-name" id="name" placeholder="Tên màu">
+                    </div>
+                    <div class="form-group">
+                        <label for="name">Mã hex</label>
+                        <input type="color" class="form-control data-hex" id="hex" placeholder="Mã hex">
+                    </div>`;
+        },
+        Update() {
+            return `<input type="hidden" class="form-control data-id" required="">
+                    <div class="error-log"></div>
+                    <div class="form-group">
+                        <label for="name">Tên màu</label>
+                        <input type="text" class="form-control data-name" id="name" placeholder="Tên màu">
+                    </div>
+                    <div class="form-group">
+                        <label for="name">Mã hex</label>
+                        <input type="color" class="form-control data-hex" id="hex" placeholder="Mã hex">
+                    </div>`;
+        },
+        Delete() {
+            return `<div class="wrapper d-flex justify-center"><img src="/manager/images_global/funny.gif" alt=""></div>`;
+        },
+    },
+    Brand: {
+        Create() {
             return `<div class="error-log"></div>
                     <div class="form-group">
                         <label for="name">Tên thương hiện</label>
                         <input type="text" class="form-control data-name" id="name" placeholder="Tên thương hiện">
-                    </div>`
+                    </div>
+                    <div class="form-group">
+                        <label for="name">Mô tả</label>
+                        <input type="text" class="form-control data-description" id="description" placeholder="Mô tả">
+                    </div>`;
         },
-        Update(){
+        Update() {
             return `<input type="hidden" class="form-control data-id" required="">
                     <div class="error-log"></div>
                     <div class="form-group">
                         <label for="name">Tên thương hiện</label>
                         <input type="text" class="form-control data-name" id="name" placeholder="Tên thương hiện">
-                    </div>`
+                    </div>
+                    <div class="form-group">
+                        <label for="name">Mô tả</label>
+                        <input type="text" class="form-control data-description" id="description" placeholder="Mô tả">
+                    </div>`;
         },
-        Delete(){
-            return `<div class="wrapper d-flex justify-center"><img src="/manager/images_global/funny.gif" alt=""></div>`
-        }
+        Delete() {
+            return `<div class="wrapper d-flex justify-center"><img src="/manager/images_global/funny.gif" alt=""></div>`;
+        },
     },
     Product: {
-        Delete(){
-            return `<div class="wrapper d-flex justify-center"><img src="/manager/images_global/funny.gif" alt=""></div>`
-        }
+        Delete() {
+            return `<div class="wrapper d-flex justify-center"><img src="/manager/images_global/funny.gif" alt=""></div>`;
+        },
     },
     Discount: {
-        Create(){
+        Create() {
             return `<div class="error-log"></div>
                     <div class="form-group">
                         <label for="name">Sản phẩm</label>
@@ -54,15 +130,15 @@ const Template = {
                     <div class="form-group">
                         <label for="name">Giảm giá</label>
                         <input type="text" class="form-control data-discount" id="name" placeholder="Nhập số">
-                    </div>`
+                    </div>`;
         },
-        Delete(){
-            return `<div class="wrapper d-flex justify-center"><img src="/manager/images_global/funny.gif" alt=""></div>`
-        }
+        Delete() {
+            return `<div class="wrapper d-flex justify-center"><img src="/manager/images_global/funny.gif" alt=""></div>`;
+        },
     },
-	Order: {
-		Update(){
-			return `<div class="container">
+    Order: {
+        Update() {
+            return `<div class="container">
                         <div class="card">
                             <div class="card-body">
                                 <div class="row align-items-center">
@@ -149,17 +225,17 @@ const Template = {
                                 </div>
                             </div>
                         </div>
-                    </div>`
-		}
-	},
+                    </div>`;
+        },
+    },
     Warehouse: {
-        Create(){
+        Create() {
             return `<div class="row warehouse-modal">
                         <div class="item-list"> </div>
                         <button type="button" class="btn btn-success item-create" atr="Item Create">Tạo mới</button>
-                    </div>`
+                    </div>`;
         },
-        Update(){
+        Update() {
             return `<table class="table table-bordered sub-warehouse">
                         <thead>
                           <tr>
@@ -171,9 +247,7 @@ const Template = {
                         </thead>
                         <tbody> 
                         </tbody>
-                      </table>`
+                      </table>`;
         },
-
     },
-    
-}
+};

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class Product extends Migration
+class ProductVar extends Migration
 {
     /**
      * Run the migrations.
@@ -13,18 +13,16 @@ class Product extends Migration
      */
     public function up()
     {
-        Schema::create('product', function (Blueprint $table) {
+        Schema::create('product_var', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('category_id');
-            $table->integer('brand_id');
-            $table->string('name');
-            $table->string('slug');
-            $table->longtext('images');
-            $table->longtext('banner');
-            $table->longtext('description')->nullable();
-            $table->longtext('detail')->nullable();
-            $table->integer('discount')->default(0);
-            $table->integer('trending')->default(0);
+            $table->integer('product_id');
+            $table->integer('color_id');
+            $table->integer('size_id');
+            $table->integer('material_id');
+            $table->string('codeSKU');
+            $table->integer('prices');
+            $table->integer('stock');
+            $table->integer('minQuantity');
             $table->integer('status')->default(1);
             $table->timestamp('created_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
@@ -38,6 +36,6 @@ class Product extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('product');
+        Schema::dropIfExists('product_var');
     }
 }
