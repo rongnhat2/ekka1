@@ -27,16 +27,12 @@ class ProductRepository extends BaseRepository implements RepositoryInterface
     }
     public function get_product()
     {
-        $sql = "SELECT product.*, category.name as category_name, trademark.name as trademark_name, warehouse.quantity
-                    FROM product
-                    LEFT JOIN category
-                    ON category.id = product.category_id
-                    LEFT JOIN warehouse
-                    ON product.id = warehouse.product_id
-                    LEFT JOIN trademark
-                    ON product.trademark_id = trademark.id
-                    ORDER BY product.created_at DESC";
-        return DB::select($sql);
+        return DB::table('product')
+            ->leftJoin('category', 'category.id', '=', 'product.category_id')
+            ->leftJoin('brand', 'brand.id', '=', 'product.brand_id')
+            ->select('product.*', 'category.name as category_name', 'brand.name as brand_name')
+            ->orderBy('product.created_at', 'desc')
+            ->get();
     }
     public function get_discount()
     {
@@ -177,5 +173,4 @@ class ProductRepository extends BaseRepository implements RepositoryInterface
                 LIMIT 4";
         return DB::select($sql);
     }
-
 }

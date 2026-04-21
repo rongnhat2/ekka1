@@ -8,27 +8,24 @@ const View = {
     },
     table: {
         __generateDTRow(data) {
-            var metadata = JSON.parse(data.metadata);
-            var meta_string = "";
-            for (const [key, value] of Object.entries(metadata)) {
-                meta_string += `<p>${key}: ${value.map((v) => `<span class="meta-item-table">${v}</span>`).join("")}</p>`;
-            }
             return [
                 `<div class="id-order">${data.id}</div>`,
-                data.name,
-                ViewIndex.table.formatNumber(data.prices) + ` đ`,
+                `<h5>${data.name}</h5>
+                ${
+                    data.images == ""
+                        ? null
+                        : data.images
+                              .split(",")
+                              .map((v) => {
+                                  return `<div class="image-table-preview" style="background-image: url('/${v}')"></div>`;
+                              })
+                              .join("")
+                }
+                `,
                 `<p>Danh mục: <span class="meta-item-table">${data.category_name ?? "Chưa có"}</span></p>
-                <p>Thương hiệu: <span class="meta-item-table">${data.trademark_name ?? "Chưa có"}</span></p>
+                <p>Thương hiệu: <span class="meta-item-table">${data.brand_name ?? "Chưa có"}</span></p>
                 <p>Còn lại: <span class="meta-item-table">${data.quantity == null || data.quantity == 0 ? "Hết hàng" : data.quantity}</span></p>`,
-                data.images == ""
-                    ? null
-                    : data.images
-                          .split(",")
-                          .map((v) => {
-                              return `<div class="image-table-preview" style="background-image: url('/${v}')"></div>`;
-                          })
-                          .join(""),
-                meta_string,
+                ,
                 `<label class="switch" data-id="${data.id}" data-status="${data.status == "1" ? "0" : "1"}" atr="Status"> <span class="slider round ${data.trending == "1" ? "active" : ""}"></span> </label>`,
                 `<div class="view-data modal-control main-tab-control" style="cursor: pointer" atr="View" data-id="${data.id}"><i class="feather-eye"></i></div>
                 <div class="view-data modal-control" style="cursor: pointer" atr="Delete" data-id="${data.id}"><i class="feather-trash"></i></div>`,
@@ -43,25 +40,13 @@ const View = {
                     width: "5%",
                 },
                 {
-                    title: "Tên",
-                    name: "name",
-                    orderable: true,
-                    width: "10%",
-                },
-                {
-                    title: "Đơn giá",
+                    title: "Sản phẩm",
                     name: "name",
                     orderable: true,
                     width: "10%",
                 },
                 {
                     title: "Thông tin",
-                    name: "name",
-                    orderable: true,
-                    width: "20%",
-                },
-                {
-                    title: "Hình ảnh",
                     name: "name",
                     orderable: true,
                     width: "20%",
@@ -313,6 +298,7 @@ const View = {
             var data_detail = $(".product-detail").val();
             var data_images = $(".product-images")[0].files;
             var data_banner = $(".product-banner")[0].files;
+            var data_product_var = View.product.getVal();
 
             var data_images_preview = [];
             $(`.main-body`)
@@ -324,10 +310,6 @@ const View = {
             // --Required Value
             if (data_images.length <= 0 && data_images_preview.length == 0) {
                 required_data.push("Hãy chọn ảnh.");
-                onPushData = false;
-            }
-            if (data_banner.length <= 0) {
-                required_data.push("Hãy chọn banner.");
                 onPushData = false;
             }
             if (data_name == "") {
@@ -348,6 +330,7 @@ const View = {
                 fd.append("data_description", data_description);
                 fd.append("data_detail", data_detail);
                 fd.append("data_banner", data_banner[0]);
+                fd.append("data_product_var", JSON.stringify(data_product_var));
                 fd.append(
                     "data_images_preview",
                     data_images_preview.toString(),

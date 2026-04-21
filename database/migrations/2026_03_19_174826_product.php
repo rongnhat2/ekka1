@@ -20,7 +20,7 @@ class Product extends Migration
             $table->string('name');
             $table->string('slug');
             $table->longtext('images');
-            $table->longtext('banner');
+            $table->longtext('banner')->nullable();
             $table->longtext('description')->nullable();
             $table->longtext('detail')->nullable();
             $table->integer('discount')->default(0);
