@@ -59,7 +59,10 @@ class ProductController extends Controller
     }
     public function get_one_cart($id)
     {
-        $data = $this->product->get_one($id);
+        $data = $this->product->get_one_cart_by_product_var_id($id);
+        if (! $data) {
+            return $this->product->send_response("NOT_FOUND", null, 404);
+        }
         return $this->product->send_response(200, $data, null);
     }
     public function get_with_category($id)

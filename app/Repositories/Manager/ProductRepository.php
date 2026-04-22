@@ -205,4 +205,27 @@ class ProductRepository extends BaseRepository implements RepositoryInterface
                 LIMIT 4";
         return DB::select($sql);
     }
+
+    /**
+     * Một dòng giỏ: theo id biến thể (product_var), join về sản phẩm.
+     * Trả về: cột product.* + product_var_id, var_prices, size_name, color_name.
+     */
+    public function get_one_cart_by_product_var_id($productVarId)
+    {
+        $row = DB::table("product_var")
+            ->join("product", "product.id", "=", "product_var.product_id")
+            ->leftJoin("size", "size.id", "=", "product_var.size_id")
+            ->leftJoin("color", "color.id", "=", "product_var.color_id")
+            ->where("product_var.id", $productVarId)
+            ->select(
+                "product.*",
+                "product_var.id as product_var_id",
+                "product_var.prices as var_prices",
+                "size.name as size_name",
+                "color.name as color_name",
+            )
+            ->first();
+
+        return $row;
+    }
 }

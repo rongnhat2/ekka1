@@ -54,6 +54,19 @@ Route::prefix('customer')->group(function () {
 
 // Route::middleware(['AuthAdmin:admin'])->group(function () {
 Route::prefix('admin')->group(function () {
+
+    Route::prefix('order')->group(function () {
+        Route::get('get', 'Admin\OrderController@get')->name('admin.order.get');
+        Route::get('get-one', 'Admin\OrderController@get_one')->name('admin.order.get');
+        Route::post('/update', 'Admin\OrderController@update')->name('admin.order.update');
+    });
+
+    Route::prefix('statistic')->group(function () {
+        Route::get('get-total', 'Admin\OrderController@get_total')->name('admin.order.get_total');
+        Route::get('get-best-sale', 'Admin\OrderController@get_best_sale')->name('admin.order.get_best_sale');
+        Route::get('get-customer', 'Admin\OrderController@get_customer')->name('admin.order.get_customer');
+    });
+
     Route::post('post-image', 'Admin\ProductController@imageUpload')->name('admin.image.post');
     Route::prefix('category')->group(function () {
         Route::get('get', 'Admin\CategoryController@get')->name('admin.category.get');

@@ -22,26 +22,32 @@ class OrderController extends Controller
 {
 
     protected $order;
+    protected $order_detail;
+    protected $product;
 
-    public function __construct(Order $order, OrderDetail $order_detail, Product $product){
+    public function __construct(Order $order, OrderDetail $order_detail, Product $product)
+    {
         $this->order             = new OrderRepository($order);
         $this->order_detail      = new OrderRepository($order_detail);
 
         $this->product           = new ProductRepository($product);
     }
-    public function get(Request $request, $id){
+    public function get(Request $request, $id)
+    {
         $data = $this->order_detail->get_sub_order($id);
         return $this->order_detail->send_response(200, $data, null);
     }
-    public function create(Request $request){
-        list( $user_id, $token) = explode('$', $request->cookie('_token_'), 2);
+    public function create(Request $request)
+    {
+        list($user_id, $token) = explode('$', $request->cookie('_token_'), 2);
         $data_login     = $request->data_login;
 
-        $data_item      = explode("-",$request->data_item);
-        $data_size      = explode(",",$request->data_size);
-        $data_quantity  = explode("-",$request->data_quantity);
-        $data_prices    = $request->data_prices;
-        
+        $data_item     = array_values(array_filter(explode("-", (string) $request->data_item), function ($v) {
+            return (string) $v !== '';
+        }));
+        $data_quantity = array_map('trim', explode("-", (string) $request->data_quantity));
+        $data_prices   = $request->data_prices;
+
         $data_username  = $request->data_username;
         $data_address   = $request->data_address;
         $data_telephone = $request->data_telephone;
@@ -62,18 +68,43 @@ class OrderController extends Controller
         ];
         $order_create = $this->order->create($data_order_create);
 
-        foreach ($data_item as $key => $item_id) {
-            $item = $this->product->get_one($item_id);
-            $total_price = $data_quantity[$key] * ( $item[0]->prices - ($item[0]->prices/100*$item[0]->discount) );
+        foreach ($data_item as $key => $product_var_id) {
+            $line = $this->product->get_one_cart_by_product_var_id($product_var_id);
+            if (! $line) {
+                continue;
+            }
+            $product_id = (int) $line->id;
+            $unit       = (float) (isset($line->var_prices) && $line->var_prices !== null && $line->var_prices !== ''
+                ? $line->var_prices
+                : $line->prices);
+            $disc       = (float) ($line->discount ?? 0);
+            $qty        = isset($data_quantity[$key]) && $data_quantity[$key] !== ''
+                ? (int) $data_quantity[$key]
+                : 1;
+            if ($qty < 1) {
+                $qty = 1;
+            }
+            $line_unit_after = $disc == 0.0
+                ? $unit
+                : $unit - ($unit * $disc / 100.0);
+            $total_price     = $qty * $line_unit_after;
+
+            $size_label_parts = [];
+            if (! empty($line->size_name)) {
+                $size_label_parts[] = $line->size_name;
+            }
+            if (! empty($line->color_name)) {
+                $size_label_parts[] = $line->color_name;
+            }
+
             $data_detail = [
-                "order_id"      => $order_create->id,
-                "product_id"    => $item_id,
-                "quantity"      => $data_quantity[$key],
-                "size"          => $data_size[$key],
-                "discount"      => $item[0]->discount,
-                "price"         => $item[0]->prices,
-                "total_price"   => $total_price,
-            ]; 
+                "order_id"    => $order_create->id,
+                "product_id"  => $product_var_id,
+                "quantity"    => (string) $qty,
+                "discount"    => (string) $disc,
+                "price"       => (string) $unit,
+                "total_price" => (string) $total_price,
+            ];
             $this->order_detail->create($data_detail);
         }
 

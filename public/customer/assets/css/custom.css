@@ -331,7 +331,8 @@ div, a, p, span{
 }
 
 
-.product-size li.is-active{
+.product-size li.is-active,
+.product-color li.is-active {
 	background-color: #007aff !important;
 	color: #fff !important;
 }

@@ -46,36 +46,67 @@ class OrderController extends Controller
         ];
         return $this->order_detail->send_response(200, $data, null);
     }
-    public function update(Request $request){
-        if ($request->data_status == 1) {
+    /**
+     * order_time.order_status: 0 Chờ xử lý, 1 Chưa hoàn thiện, 2 Đã hoàn thiện,
+     * 3 Đã giao hàng (trừ product_var.stock), 4 Hoàn trả (cộng lại stock — chỉ khi chưa ở trạng thái cuối).
+     * order_detail.product_id = product_var.id (biến thể).
+     * Trạng thái 3 hoặc 4: không cho đổi sang bất kỳ trạng thái nào khác; không cho 3 → 4.
+     */
+    public function update(Request $request)
+    {
+        $orderId   = (int) $request->data_id;
+        $newStatus = (int) $request->data_status;
 
-        }else if ($request->data_status == 2) {
-            $this->order_detail->update_status($request->data_id);
-            $data_sub = $this->order_detail->get_full_order($request->data_id);
-            foreach ($data_sub as $key => $value) {
-                $warehouse_item = $this->warehouse->warehouse_get_item($value->product_id);
-                if (count($warehouse_item) > 0 && $warehouse_item[0]->quantity > $value->quantity) {
-                    $this->warehouse->update_item($value->product_id, $warehouse_item[0]->quantity -= $value->quantity);
-                }else{
-                    return $this->order->send_response(500, null, null);
-                }
-            }
-        }else if ($request->data_status == 3) {
-
-        }else if ($request->data_status == 4) {
-            $this->order_detail->update_status($request->data_id);
-            $data_sub = $this->order_detail->get_full_order($request->data_id);
-            foreach ($data_sub as $key => $value) {
-                $warehouse_item = $this->warehouse->warehouse_get_item($value->product_id);
-                if (count($warehouse_item) > 0 && $warehouse_item[0]->quantity > $value->quantity) {
-                    $this->warehouse->update_item($value->product_id, $warehouse_item[0]->quantity += $value->quantity);
-                }else{
-                    return $this->order->send_response(500, null, null);
-                }
-            }
+        $orderRow = $this->order->get_order_time_row($orderId);
+        if (! $orderRow) {
+            return $this->order->send_response(404, null, 404);
         }
-        $this->order->update(["order_status" => $request->data_status], $request->data_id);
-        return $this->order->send_response(201, null, null);
+
+        $old = (int) $orderRow->order_status;
+        if ($old === $newStatus) {
+            return $this->order->send_response(201, null, null);
+        }
+
+        if (in_array($old, [3, 4], true)) {
+            return $this->order->send_response(400, 'ORDER_LOCKED', 400);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            if ($newStatus === 3) {
+                $lines = $this->order_detail->get_order_lines_for_stock($orderId);
+                foreach ($lines as $line) {
+                    $varId = (int) $line->product_var_id;
+                    $qty   = (int) $line->qty_raw;
+                    if ($varId < 1 || $qty < 1) {
+                        continue;
+                    }
+                    $rows = $this->warehouse->warehouse_get_item($varId);
+                    if (count($rows) === 0) {
+                        DB::rollBack();
+                        return $this->order->send_response(500, null, null);
+                    }
+                    $stock = (int) $rows[0]->stock;
+                    if ($stock < $qty) {
+                        DB::rollBack();
+                        return $this->order->send_response(500, null, null);
+                    }
+                    $this->warehouse->update_item($varId, $stock - $qty);
+                }
+                $this->order_detail->update_status($orderId);
+            } elseif ($newStatus === 4) {
+                // Hoàn trả: không cộng kho ở đây (3→4 bị cấm; từ 0/1/2 chưa trừ kho ở bước giao 3).
+                $this->order_detail->update_status($orderId);
+            }
+
+            $this->order->update(['order_status' => $newStatus], $orderId);
+            DB::commit();
+            return $this->order->send_response(201, null, null);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return $this->order->send_response(500, null, null);
+        }
     }
 
 

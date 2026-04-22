@@ -1,108 +1,242 @@
 const View = {
+    /** Danh sách product_var.id đang có trong localStorage['cart-ekka'] (layout.js) */
+    getCartVarIds() {
+        try {
+            const raw = localStorage.getItem("cart-ekka");
+            if (!raw) return [];
+            const o = JSON.parse(raw);
+            if (o && o.items && Array.isArray(o.items)) {
+                return o.items
+                    .map((x) =>
+                        x && x.productVarId ? String(x.productVarId) : "",
+                    )
+                    .filter((id) => id.length);
+            }
+        } catch (e) {}
+        return [];
+    },
     Description: {
-        // Lưu lại state lựa chọn hiện tại trên UI
         selected: {
             size_id: null,
             color_id: null,
         },
-        // Helper để lấy đúng variant theo lựa chọn size / color, nếu không khớp thì default
-        getSelectedVariant(data) {
-            const size_id = View.Description.selected.size_id;
-            const color_id = View.Description.selected.color_id;
-            if (data.product_var && data.product_var.length) {
-                // Ưu tiên filter cả 2
-                let variant = data.product_var.find(
-                    (v) =>
-                        (!size_id || v.size_id == size_id) &&
-                        (!color_id || v.color_id == color_id),
-                );
-                if (!variant && (size_id || color_id)) {
-                    // filter theo size
-                    variant = data.product_var.find(
-                        (v) => !size_id || v.size_id == size_id,
-                    );
-                }
-                if (!variant && (size_id || color_id)) {
-                    // filter theo color
-                    variant = data.product_var.find(
-                        (v) => !color_id || v.color_id == color_id,
-                    );
-                }
-                // fallback: default = product_var[0]
-                return variant || data.product_var[0];
-            }
-            return null;
+        /** Có cột size / màu trong product_var không (bỏ qua null) */
+        variationMeta(product_var) {
+            const vars = product_var || [];
+            const hasSize = vars.some(
+                (v) => v.size_id != null && v.size_id !== "",
+            );
+            const hasColor = vars.some(
+                (v) => v.color_id != null && v.color_id !== "",
+            );
+            return { hasSize, hasColor, vars };
         },
-        render(data) {
-            // Lấy thông tin giỏ hàng từ localStorage
-            const cards =
-                localStorage.getItem("card") == null
-                    ? []
-                    : localStorage.getItem("card").split("-");
-            const size_id =
-                localStorage.getItem("size") == null
-                    ? []
-                    : localStorage.getItem("size").split(",");
-            const color_id =
-                localStorage.getItem("color") == null
-                    ? []
-                    : localStorage.getItem("color").split(",");
-            const id_index = cards.indexOf(data.id + "");
-
-            // Lấy danh sách size (duy nhất) và màu (duy nhất) dựa vào các product_var
-            const sizeSet = {};
-            const colorSet = {};
-            (data.product_var || []).forEach((v) => {
-                sizeSet[v.size_id] = v.size_name;
-                colorSet[v.color_id] = v.color_name;
+        sizeMapFromVars(product_var) {
+            const m = {};
+            (product_var || []).forEach((v) => {
+                if (v.size_id != null && v.size_id !== "")
+                    m[v.size_id] = v.size_name;
             });
-
-            const sizeList = Object.entries(sizeSet)
+            return m;
+        },
+        /**
+         * Màu hiển thị: nếu có size → chỉ màu của các dòng product_var đúng size;
+         * nếu không có size → tất cả màu; nếu có size nhưng chưa chọn → rỗng (chọn size trước).
+         */
+        colorMapForSelection(product_var, size_id) {
+            const { hasSize, hasColor, vars } =
+                View.Description.variationMeta(product_var);
+            const out = {};
+            if (!hasColor) return out;
+            if (!hasSize) {
+                (vars || []).forEach((v) => {
+                    if (v.color_id != null && v.color_id !== "")
+                        out[v.color_id] = v.color_name;
+                });
+                return out;
+            }
+            if (size_id == null || String(size_id) === "") return out;
+            (vars || []).forEach((v) => {
+                if (String(v.size_id) !== String(size_id)) return;
+                if (v.color_id != null && v.color_id !== "")
+                    out[v.color_id] = v.color_name;
+            });
+            return out;
+        },
+        buildSizeListHTML(sizeMap) {
+            return Object.entries(sizeMap)
                 .map(
                     ([id, name]) =>
                         `<li size-id="${id}"><span>${name}</span></li>`,
                 )
                 .join("");
-            const colorList = Object.entries(colorSet)
+        },
+        buildColorListHTML(colorMap) {
+            return Object.entries(colorMap)
                 .map(
                     ([id, name]) =>
-                        `<li color-id="${id}"><span style="background-color: ${name};"></span> ${name}</li>`,
+                        `<li color-id="${id}"><span>${name}</span></li>`,
                 )
                 .join("");
+        },
+        applyVariationVisibility(hasSize, hasColor) {
+            $(".ec-pro-variation-inner.ec-pro-variation-size").toggle(
+                !!hasSize,
+            );
+            $(".ec-pro-variation-inner.ec-pro-variation-color").toggle(
+                !!hasColor,
+            );
+        },
+        /** Sau khi đổi size: vẽ lại list màu + reset màu nếu không còn hợp lệ */
+        rebuildColorForSize(data) {
+            const cm = View.Description.colorMapForSelection(
+                data.product_var,
+                View.Description.selected.size_id,
+            );
+            $(".product-color").html(
+                View.Description.buildColorListHTML(cm),
+            );
+            const keys = Object.keys(cm);
+            const cur = View.Description.selected.color_id;
+            if (!keys.length) {
+                View.Description.selected.color_id = null;
+            } else if (cur == null || cm[cur] === undefined) {
+                View.Description.selected.color_id = keys[0];
+            }
+        },
+        getSelectedVariant(data) {
+            const vars = data.product_var;
+            if (!vars || !vars.length) return null;
+            const { hasSize, hasColor } =
+                View.Description.variationMeta(vars);
+            const sz = View.Description.selected.size_id;
+            const cl = View.Description.selected.color_id;
 
-            $(".product-size").html(sizeList);
-            $(".product-color").html(colorList);
+            let cand = vars.slice();
+            if (hasSize && sz != null && String(sz) !== "")
+                cand = cand.filter((v) => String(v.size_id) === String(sz));
+            if (hasColor && cl != null && String(cl) !== "")
+                cand = cand.filter((v) => String(v.color_id) === String(cl));
+            if (cand.length) return cand[0];
 
-            // --- Xử lý chọn size/màu ban đầu và state ---
-            // Use saved value or default
-            let selected_size = null,
+            cand = vars.slice();
+            if (hasSize && sz != null && String(sz) !== "")
+                cand = cand.filter((v) => String(v.size_id) === String(sz));
+            if (cand.length) return cand[0];
+
+            cand = vars.slice();
+            if (hasColor && cl != null && String(cl) !== "")
+                cand = cand.filter((v) => String(v.color_id) === String(cl));
+            if (cand.length) return cand[0];
+
+            return vars[0];
+        },
+        /** Cùng class is-active với size + layout.js readVariationFromButton (.product-color .is-active) */
+        refreshVariationUI() {
+            $(".product-size li").removeClass("is-active");
+            $(".product-color li").removeClass("is-active");
+            const s = View.Description.selected.size_id;
+            const c = View.Description.selected.color_id;
+            if (s != null && String(s) !== "")
+                $(".product-size li")
+                    .filter(function () {
+                        return (
+                            String($(this).attr("size-id") || "") === String(s)
+                        );
+                    })
+                    .addClass("is-active");
+            if (c != null && String(c) !== "")
+                $(".product-color li")
+                    .filter(function () {
+                        return (
+                            String($(this).attr("color-id") || "") === String(c)
+                        );
+                    })
+                    .addClass("is-active");
+        },
+        /** Gán data-product-var-id + text nút theo biến thể (layout cần hợp lệ) */
+        syncAddToCartButton(data) {
+            const varIds = View.getCartVarIds();
+            const variant = View.Description.getSelectedVariant(data);
+            $(".action-add-to-card").attr("data-id", data.id);
+            if (variant && variant.id != null) {
+                $(".action-add-to-card").attr(
+                    "data-product-var-id",
+                    String(variant.id),
+                );
+                $(".action-add-to-card").html(
+                    varIds.includes(String(variant.id))
+                        ? "✔ đã thêm"
+                        : "+ Giỏ hàng",
+                );
+            } else {
+                $(".action-add-to-card").removeAttr("data-product-var-id");
+                $(".action-add-to-card").html("+ Giỏ hàng");
+            }
+        },
+        render(data) {
+            const varIds = View.getCartVarIds();
+            const inCart = (data.product_var || []).find(
+                (v) => v && v.id != null && varIds.includes(String(v.id)),
+            );
+
+            const meta = View.Description.variationMeta(data.product_var);
+            const { hasSize, hasColor } = meta;
+            const sizeMap = View.Description.sizeMapFromVars(
+                data.product_var,
+            );
+
+            let selected_size = null;
+            let selected_color = null;
+
+            if (inCart) {
+                if (inCart.size_id != null && inCart.size_id !== "")
+                    selected_size = String(inCart.size_id);
+                if (inCart.color_id != null && inCart.color_id !== "")
+                    selected_color = String(inCart.color_id);
+            }
+
+            if (hasSize) {
+                const sizeKeys = Object.keys(sizeMap);
+                if (selected_size == null && sizeKeys.length)
+                    selected_size = sizeKeys[0];
+                else if (
+                    selected_size != null &&
+                    sizeMap[selected_size] === undefined
+                )
+                    selected_size = sizeKeys.length ? sizeKeys[0] : null;
+            } else {
+                selected_size = null;
+            }
+
+            const colorMap = View.Description.colorMapForSelection(
+                data.product_var,
+                selected_size,
+            );
+            if (hasColor) {
+                const ckeys = Object.keys(colorMap);
+                if (
+                    selected_color == null ||
+                    colorMap[selected_color] === undefined
+                ) {
+                    selected_color = ckeys.length ? ckeys[0] : null;
+                }
+            } else {
                 selected_color = null;
-
-            if (size_id[id_index]) {
-                selected_size = size_id[id_index];
-            } else if (Object.keys(sizeSet).length > 0) {
-                selected_size = Object.keys(sizeSet)[0];
             }
 
-            if (color_id && color_id[id_index]) {
-                selected_color = color_id[id_index];
-            } else if (Object.keys(colorSet).length > 0) {
-                selected_color = Object.keys(colorSet)[0];
-            }
+            View.Description.selected.size_id = hasSize ? selected_size : null;
+            View.Description.selected.color_id = hasColor
+                ? selected_color
+                : null;
 
-            // Gán vào state
-            View.Description.selected.size_id = selected_size;
-            View.Description.selected.color_id = selected_color;
-
-            // set active UI
-            if (selected_size)
-                $(`.product-size li[size-id="${selected_size}"]`).addClass(
-                    "is-active",
-                );
-            if (selected_color)
-                $(`.product-color li[color-id="${selected_color}"]`).addClass(
-                    "is-active",
-                );
+            $(".product-size").html(
+                View.Description.buildSizeListHTML(sizeMap),
+            );
+            $(".product-color").html(
+                View.Description.buildColorListHTML(colorMap),
+            );
+            View.Description.applyVariationVisibility(hasSize, hasColor);
 
             // Render giá đúng theo variant được chọn (size+color)
             const variant = View.Description.getSelectedVariant(data);
@@ -141,15 +275,12 @@ const View = {
                 prices += `<span class="new-price">${real_prices} đ</span> `;
             }
 
-            $(".action-add-to-card").attr("data-id", data.id);
-            $(".action-add-to-card").html(
-                cards.includes(data.id + "") ? "✔ đã thêm" : "+ Giỏ hàng",
-            );
-
             $(".product-name").text(data.name);
             $(".product-description").html(data.description);
             $(".product-detail").html(data.detail);
             $(".product-prices").html(prices);
+            View.Description.syncAddToCartButton(data);
+            View.Description.refreshVariationUI();
         },
         // Được gọi lại để re-render giá khi lựa chọn thay đổi (size/color)
         updatePrices(data) {
@@ -187,6 +318,8 @@ const View = {
                 prices += `<span class="new-price">${real_prices} đ</span> `;
             }
             $(".product-prices").html(prices);
+            View.Description.syncAddToCartButton(data);
+            View.Description.refreshVariationUI();
         },
     },
     Images: {
@@ -224,10 +357,6 @@ const View = {
     },
     RelatedProduct: {
         render(data) {
-            var cards =
-                localStorage.getItem("card") == null
-                    ? ""
-                    : localStorage.getItem("card").split("-");
             data.map((v) => {
                 var image = v.images && v.images.split(",")[0];
                 // Dự đoán mảng product_var truyền về ở sản phẩm liên quan
@@ -337,27 +466,22 @@ const View = {
         // Lưu cache tạm thời cho dữ liệu sản phẩm đang xem
         if (!View._currentProduct) View._currentProduct = null;
 
-        // Khi chọn size
+        // Khi chọn size → list màu chỉ còn màu có với size đó
         $(document).on("click", `.product-size li`, function (event) {
+            event.preventDefault();
             const size_id = $(this).attr("size-id");
-            $(".product-size li").removeClass("is-active");
-            $(this).addClass("is-active");
-
             View.Description.selected.size_id = size_id;
-            // update UI giá theo size (và color hiện tại)
             if (View._currentProduct) {
+                View.Description.rebuildColorForSize(View._currentProduct);
                 View.Description.updatePrices(View._currentProduct);
             }
         });
 
         // Khi chọn màu
         $(document).on("click", `.product-color li`, function (event) {
+            event.preventDefault();
             const color_id = $(this).attr("color-id");
-            $(".product-color li").removeClass("is-active");
-            $(this).addClass("is-active");
-
             View.Description.selected.color_id = color_id;
-            // update UI giá theo color (và size hiện tại)
             if (View._currentProduct) {
                 View.Description.updatePrices(View._currentProduct);
             }

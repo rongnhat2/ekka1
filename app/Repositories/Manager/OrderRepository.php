@@ -13,46 +13,84 @@ class OrderRepository extends BaseRepository implements RepositoryInterface
 {
     protected $model;
 
-    public function __construct(Model $model){
+    public function __construct(Model $model)
+    {
         $this->model = $model;
     }
 
     // admin
-    public function get_full_order($id){
-        $sql = " SELECT order_detail.*, 
-                        product.name, 
-                        product.id as product_id,
-                        warehouse.quantity as warehouse_quatity
-                FROM order_detail
-                LEFT JOIN product
-                ON product.id = order_detail.product_id
-                LEFT JOIN warehouse
-                ON product.id = warehouse.product_id
-                WHERE order_id = ".$id;
-        return DB::select($sql);
+    public function get_full_order($id)
+    {
+        return DB::table('order_detail')
+            ->join('product_var', 'product_var.id', '=', 'order_detail.product_id')
+            ->join('product', 'product.id', '=', 'product_var.product_id')
+            ->leftJoin('size', 'size.id', '=', 'product_var.size_id')
+            ->leftJoin('color', 'color.id', '=', 'product_var.color_id')
+            ->leftJoin('material', 'material.id', '=', 'product_var.material_id')
+            ->select(
+                'order_detail.*',
+                'product_var.id as pv_id',
+                'product_var.stock',
+                'product.name',
+                'product.images',
+                'size.name as size_name',
+                'color.name as color_name',
+                'material.name as material_name'
+            )
+            ->where('order_detail.order_id', $id)
+            ->get();
     }
-    public function get_in_order($id){
+    public function get_in_order($id)
+    {
         $sql = " SELECT *
                     FROM order_time
-                    WHERE id = ".$id;
+                    WHERE id = " . $id;
         return DB::select($sql);
     }
-    public function update_status($id){
+    public function update_status($id)
+    {
         $sql = "UPDATE order_detail
                 SET suborder_status = 1
-                WHERE order_id = ".$id;
+                WHERE order_id = " . $id;
         return DB::select($sql);
     }
 
-    
+    /**
+     * order_detail.product_id = product_var.id (biến thể)
+     * Chỉ join product_var, không join size/color để không mất dòng.
+     */
+    public function get_order_lines_for_stock($orderId)
+    {
+        return DB::table("order_detail")
+            ->join("product_var", "product_var.id", "=", "order_detail.product_id")
+            ->where("order_detail.order_id", (int) $orderId)
+            ->select(
+                "order_detail.id as order_detail_id",
+                "order_detail.product_id as product_var_id",
+                "order_detail.quantity as qty_raw",
+                "product_var.stock as var_stock"
+            )
+            ->get();
+    }
 
-    public function get_turnover(){
+    public function get_order_time_row($id)
+    {
+        return DB::table("order_time")
+            ->where("id", (int) $id)
+            ->first();
+    }
+
+
+
+    public function get_turnover()
+    {
         $sql = " SELECT sum(total) as total
                     FROM order_time
                     WHERE order_status = 3";
         return DB::select($sql);
     }
-    public function get_item_sell(){
+    public function get_item_sell()
+    {
         $sql = " SELECT sum(quantity) as total
                     FROM order_time
                     LEFT JOIN order_detail
@@ -60,20 +98,23 @@ class OrderRepository extends BaseRepository implements RepositoryInterface
                     WHERE order_status = 3";
         return DB::select($sql);
     }
-    public function get_order_time(){
+    public function get_order_time()
+    {
         $sql = " SELECT count(*) as total
                     FROM order_time
                     WHERE order_status = 3";
         return DB::select($sql);
     }
-    public function get_customer_buy(){
+    public function get_customer_buy()
+    {
         $sql = " SELECT count(customer_id) as total
                     FROM order_time
                     WHERE order_status = 3 AND status_customer = 1
                     GROUP BY customer_id";
         return DB::select($sql);
     }
-    public function get_best_sale(){
+    public function get_best_sale()
+    {
         $sql = " SELECT order_detail.product_id, 
                         sum(order_detail.quantity) as total, 
                         warehouse.quantity,
@@ -94,14 +135,16 @@ class OrderRepository extends BaseRepository implements RepositoryInterface
                     ORDER BY total DESC LIMIT 5";
         return DB::select($sql);
     }
-    public function get_customer_new(){
+    public function get_customer_new()
+    {
         $sql = "SELECT count(customer_id) as total
                 FROM order_time
                 WHERE order_status = 3 AND status_customer = 1
                 GROUP BY customer_id ";
         return DB::select($sql);
     }
-    public function get_customer_free(){
+    public function get_customer_free()
+    {
         $sql = "SELECT count(customer_id) as total
                 FROM order_time
                 WHERE order_status = 3 AND status_customer = 0
@@ -109,23 +152,21 @@ class OrderRepository extends BaseRepository implements RepositoryInterface
         return DB::select($sql);
     }
 
-    
+
     // customer
-    public function get_order($id){
+    public function get_order($id)
+    {
         $sql = " SELECT * 
                 FROM order_time
-                WHERE order_status = ".$id;
+                WHERE order_status = " . $id;
         return DB::select($sql);
     }
-    public function get_sub_order($id){
-        $sql = " SELECT order_detail.*, 
-                        product.name, 
-                        product.id as product_id 
-                FROM order_detail
-                LEFT JOIN product
-                ON product.id = order_detail.product_id
-                WHERE order_id = ".$id;
-        return DB::select($sql);
+    public function get_sub_order($id)
+    {
+        return DB::table('order_detail')
+            ->join('product_var', 'product_var.id', '=', 'order_detail.product_id')
+            ->join('product', 'product.id', '=', 'product_var.product_id')
+            ->where('order_id', $id)
+            ->get();
     }
-
 }

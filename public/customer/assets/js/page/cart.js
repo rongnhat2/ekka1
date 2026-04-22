@@ -1,64 +1,76 @@
 const View = {
     Cart: {
-        render(data) {
-            // Lấy dữ liệu giỏ hàng từ localStorage
-            var cards =
-                localStorage.getItem("card") == null
-                    ? []
-                    : localStorage.getItem("card").split("-");
-            var size_id =
-                localStorage.getItem("size") == null
-                    ? []
-                    : localStorage.getItem("size").split(",");
-            var quantitys =
-                localStorage.getItem("quantity") == null
-                    ? []
-                    : localStorage.getItem("quantity").split("-");
-            var id_index = cards.indexOf(data.id + "");
-
-            var image = data.images.split(",")[0];
-            var discount = (data.prices * data.discount) / 100;
-            var real_prices =
-                data.discount == 0 ? data.prices : data.prices - discount;
+        /** Đơn giá 1 sản phẩm: ưu tiên giá biến thể (var_prices) */
+        unitLinePrice(data) {
+            if (!data) return 0;
+            const v = data.var_prices;
+            if (v != null && v !== "" && !isNaN(parseFloat(v))) {
+                return parseFloat(v);
+            }
+            return parseFloat(data.prices) || 0;
+        },
+        /** Ghi chú size/màu dưới tên sản phẩm */
+        variantLabelHtml(data) {
+            if (!data) return "";
+            const parts = [];
+            if (data.size_name) parts.push("Size: " + data.size_name);
+            if (data.color_name) parts.push("Màu: " + data.color_name);
+            return parts.length
+                ? `<div class="ec-cart-opts text-muted" style="font-size:0.9em;">${parts.join(" · ")}</div>`
+                : "";
+        },
+        /**
+         * data: 1 dòng từ API (product + product_var_id, var_prices, size_name, color_name)
+         * qty: số lượng từ cart-ekka
+         * productVarId: để gắn data-product-var-id (khi cần trùng id)
+         */
+        render(data, qty, productVarId) {
+            if (!data) return;
+            const vid = String(
+                productVarId != null ? productVarId : data.product_var_id || "",
+            );
+            const image = (data.images || "").split(",")[0];
+            const unit = View.Cart.unitLinePrice(data);
+            const discVal = data.discount || 0;
+            const discount = (unit * discVal) / 100;
+            const realUnit = discVal == 0 ? unit : unit - discount;
+            const q = Math.max(1, parseInt(qty, 10) || 1);
+            const totalReal = realUnit * q;
+            const totalOrig = unit * q;
+            const totalDisc = discount * q;
 
             let prices = "";
-            if (discount != 0) {
-                prices += `<del class="m-r-10">${View.formatNumber(data.prices)} đ</del>`;
+            if (discVal != 0) {
+                prices += `<del class="m-r-10">${View.formatNumber(unit)} đ</del>`;
             }
-            prices += `<span class="amount"> ${View.formatNumber(real_prices)} đ </span>`;
-
-            // Quantity hiện tại của sản phẩm (xử lý tương tự với giỏ hàng)
-            let qty =
-                quantitys && id_index > -1 && quantitys[id_index]
-                    ? quantitys[id_index]
-                    : 1;
-            qty = parseInt(qty) || 1;
+            prices += `<span class="amount"> ${View.formatNumber(realUnit)} đ </span>`;
 
             $(".cart-list").append(`
-                <tr data-id="${data.id}"
-                    data-prices="${data.prices}" 
-                    data-real-prices="${real_prices}"
+                <tr
+                    data-product-id="${data.id}"
+                    data-product-var-id="${vid}"
+                    data-prices="${unit}"
+                    data-real-prices="${realUnit}"
                     data-discount="${discount}"
-                    data-discount-value="${data.discount}"
-                    data-total-prices="${data.prices * qty}"
-                    data-total-discount="${discount * qty}"
-                    data-total-real-prices="${real_prices * qty}"
-                    data-quatity="${qty}">
-                    <td data-label="Product" class="ec-cart-pro-name"><a href="/product?id=${data.id}">
-                        <img class="ec-cart-pro-img mr-4" src="/${image}" alt="" />${data.name}</a>
+                    data-discount-value="${discVal}"
+                    data-total-prices="${totalOrig}"
+                    data-total-discount="${totalDisc}"
+                    data-total-real-prices="${totalReal}"
+                    data-quatity="${q}">
+                    <td data-label="Product" class="ec-cart-pro-name">
+                        <a href="/product?id=${data.id}">
+                            <img class="ec-cart-pro-img mr-4" src="/${image}" alt="" />${data.name}</a>
+                        ${View.Cart.variantLabelHtml(data)}
                     </td>
                     <td data-label="Price" class="ec-cart-pro-price">
                         ${prices}
                     </td>
-                    <td >
-                        ${size_id[id_index] || ""}
-                    </td>
                     <td data-label="Quantity" class="ec-cart-pro-qty" style="text-align: center;">
                         <div class="cart-qty-plus-minus">
-                            <input class="cart-plus-minus input-qty" type="text" name="cartqtybutton" value="${qty}" />
+                            <input class="cart-plus-minus input-qty" type="text" name="cartqtybutton" value="${q}" />
                         </div>
                     </td>
-                    <td data-label="Total" class="ec-cart-pro-subtotal data-total-prices">${View.formatNumber(real_prices * qty)} đ</td>
+                    <td data-label="Total" class="ec-cart-pro-subtotal data-total-prices">${View.formatNumber(totalReal)} đ</td>
                     <td data-label="Remove" class="ec-cart-pro-remove">
                         <a href="#" class="remove-item"><i class="ecicon eci-trash-o"></i></a>
                     </td>
@@ -84,10 +96,41 @@ const View = {
         },
     },
     Product: {
+        /** metadata DB có thể null, "" hoặc không phải JSON */
+        parseMetadata(raw) {
+            if (raw == null || raw === "") {
+                return { size: [], color: [] };
+            }
+            if (
+                typeof raw === "object" &&
+                raw !== null &&
+                !Array.isArray(raw)
+            ) {
+                return {
+                    size: Array.isArray(raw.size) ? raw.size : [],
+                    color: Array.isArray(raw.color) ? raw.color : [],
+                };
+            }
+            var s = String(raw).trim();
+            if (!s) return { size: [], color: [] };
+            try {
+                var o = JSON.parse(s);
+                if (typeof o !== "object" || o == null) {
+                    return { size: [], color: [] };
+                }
+                return {
+                    size: Array.isArray(o.size) ? o.size : [],
+                    color: Array.isArray(o.color) ? o.color : [],
+                };
+            } catch (e) {
+                return { size: [], color: [] };
+            }
+        },
         renderNew(data) {
-            data.map((v) => {
-                var image = v.images.split(",")[0];
-                var metadata = JSON.parse(v.metadata);
+            if (!data || !Array.isArray(data)) return;
+            data.forEach((v) => {
+                var image = (v.images || "").split(",")[0] || "";
+                var metadata = View.Product.parseMetadata(v.metadata);
                 var size = (metadata.size || [])
                     .map(
                         (sz) =>
@@ -153,7 +196,10 @@ const View = {
         },
     },
     formatNumber(num) {
-        return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
+        if (num === null || num === undefined || isNaN(num)) return "0";
+        return Number(num)
+            .toString()
+            .replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
     },
     isNumberKey(evt) {
         var charCode = evt.which ? evt.which : event.keyCode;
@@ -162,10 +208,11 @@ const View = {
     },
     onRemove(callback) {
         $(document).on("click", `.remove-item`, function (event) {
+            event.preventDefault();
             var father = $(this).closest("tr");
-            var id = father.attr("data-id");
+            var varId = father.attr("data-product-var-id");
             father.remove();
-            callback(id);
+            callback(varId);
         });
     },
     onCheckout(callback) {
@@ -173,39 +220,62 @@ const View = {
             callback($(".real-total").attr("data-total"));
         });
     },
+    /** Cập nhật qty trong cart-ekka theo 1 dòng */
+    _updateEkkaQtyForVarId(productVarId, quantity) {
+        var o = LayoutView.CartLocal.load();
+        o.items = o.items.map(function (it) {
+            if (String(it.productVarId) === String(productVarId)) {
+                return {
+                    productVarId: it.productVarId,
+                    qty: Math.max(1, parseInt(quantity, 10) || 1),
+                    size: it.size,
+                    color: it.color,
+                };
+            }
+            return it;
+        });
+        LayoutView.CartLocal.save({
+            items: o.items,
+            lastTotal: o.lastTotal,
+        });
+        try {
+            LayoutView.Cart.update();
+        } catch (e) {}
+    },
+    /** Xóa 1 dòng theo product_var_id (logic lưu ở layout.js) */
+    _removeEkkaLine(productVarId) {
+        if (productVarId && LayoutView.CartLocal.removeItemByVarId) {
+            LayoutView.CartLocal.removeItemByVarId(productVarId);
+        }
+    },
     init() {
         $(document).on("keypress", `.input-qty`, function (event) {
             return View.isNumberKey(event);
         });
         $(document).on("keyup", `.input-qty`, function (event) {
             var father = $(this).closest("tr");
-            var prices = father.attr("data-prices");
-            var real_prices = father.attr("data-real-prices");
-            var discount = father.attr("data-discount");
-            var quantity = parseInt(father.find(".input-qty").val()) || 1;
+            var unit = parseFloat(father.attr("data-prices")) || 0;
+            var discVal = parseFloat(father.attr("data-discount-value")) || 0;
+            var discountPer = (unit * discVal) / 100;
+            var realPer = discVal == 0 ? unit : unit - discountPer;
+            var quantity = parseInt(father.find(".input-qty").val(), 10) || 1;
+
+            var totalReal = realPer * quantity;
+            var totalOrig = unit * quantity;
+            var totalDisc = discountPer * quantity;
 
             father
                 .find(".data-total-prices")
-                .html(View.formatNumber(real_prices * quantity) + " đ");
+                .html(View.formatNumber(totalReal) + " đ");
             father.attr("data-quatity", quantity);
-            father.attr("data-total-prices", prices * quantity);
-            father.attr("data-total-discount", discount * quantity);
-            father.attr("data-total-real-prices", real_prices * quantity);
+            father.attr("data-total-prices", totalOrig);
+            father.attr("data-total-discount", totalDisc);
+            father.attr("data-total-real-prices", totalReal);
+            father.attr("data-real-prices", realPer);
 
-            // Đồng bộ quantity vào localStorage (xử lý tương tự với giỏ hàng)
-            var cards =
-                localStorage.getItem("card") == null
-                    ? []
-                    : localStorage.getItem("card").split("-");
-            var curr_id = father.attr("data-id");
-            var idx = cards.indexOf(curr_id);
-            var quantitys =
-                localStorage.getItem("quantity") == null
-                    ? []
-                    : localStorage.getItem("quantity").split("-");
-            if (idx > -1) {
-                quantitys[idx] = quantity;
-                localStorage.setItem("quantity", quantitys.join("-"));
+            var vid = father.attr("data-product-var-id");
+            if (vid) {
+                View._updateEkkaQtyForVarId(vid, quantity);
             }
             View.Cart.setTotal();
         });
@@ -217,70 +287,78 @@ const View = {
         getCart();
         getNewArrivals();
     }
-    View.onRemove((id) => {
-        // Xử lý xóa item: đồng bộ với cả "card", "size" và "quantity"
-        var cards = localStorage.getItem("card")
-            ? localStorage.getItem("card").split("-")
-            : [];
-        var sizes = localStorage.getItem("size")
-            ? localStorage.getItem("size").split(",")
-            : [];
-        var colors = localStorage.getItem("color")
-            ? localStorage.getItem("color").split(",")
-            : [];
-        var quantitys = localStorage.getItem("quantity")
-            ? localStorage.getItem("quantity").split("-")
-            : [];
-
-        var idx = cards.indexOf(id);
-        if (idx > -1) {
-            cards.splice(idx, 1);
-            sizes.splice(idx, 1);
-            colors.splice(idx, 1);
-            quantitys.splice(idx, 1);
-
-            if (!cards.length) {
-                localStorage.removeItem("card");
-                localStorage.removeItem("size");
-                localStorage.removeItem("color");
-                localStorage.removeItem("quantity");
-            } else {
-                localStorage.setItem("card", cards.join("-"));
-                localStorage.setItem("size", sizes.join(","));
-                localStorage.setItem("color", colors.join(","));
-                localStorage.setItem("quantity", quantitys.join("-"));
-            }
+    View.onRemove((productVarId) => {
+        if (productVarId) {
+            View._removeEkkaLine(productVarId);
         }
         View.Cart.setTotal();
     });
     View.onCheckout((total_prices) => {
-        // Lưu quantity hiện tại lần cuối khi checkout
-        var quantity_list = [];
-        $(".cart-list tr").each(function (index, el) {
-            let qty = $(this).find(".input-qty").val();
-            quantity_list.push(qty);
+        var o = LayoutView.CartLocal.load();
+        $(".cart-list tr").each(function () {
+            var vid = $(this).attr("data-product-var-id");
+            var q = parseInt($(this).find(".input-qty").val(), 10) || 1;
+            if (!vid) return;
+            o.items = o.items.map(function (it) {
+                if (String(it.productVarId) === String(vid)) {
+                    return {
+                        productVarId: it.productVarId,
+                        qty: Math.max(1, q),
+                        size: it.size,
+                        color: it.color,
+                    };
+                }
+                return it;
+            });
         });
-        localStorage.setItem("quantity", quantity_list.join("-"));
-        localStorage.setItem("total_prices", total_prices);
+        o.lastTotal = total_prices != null ? String(total_prices) : null;
+        LayoutView.CartLocal.save({
+            items: o.items,
+            lastTotal: o.lastTotal,
+        });
     });
     function getCart() {
-        var cart_item =
-            localStorage.getItem("card") == null
-                ? []
-                : localStorage.getItem("card").split("-");
-        cart_item.forEach((v) => {
-            if (v) getItem(v);
-        });
-    }
-    function getItem(id) {
-        Api.Product.GetOneItem(id)
-            .done((res) => {
-                if (res.data && res.data[0]) {
-                    View.Cart.render(res.data[0]);
+        $(".cart-list").empty();
+        if (typeof LayoutView === "undefined" || !LayoutView.CartLocal) {
+            return;
+        }
+        var o = LayoutView.CartLocal.load();
+        var items = o.items || [];
+        if (!items.length) {
+            View.Cart.setTotal();
+            return;
+        }
+        var pending = items.length;
+        var i;
+        for (i = 0; i < items.length; i++) {
+            (function (idx) {
+                var it = items[idx];
+                var vid = String((it && it.productVarId) || "").trim();
+                if (!vid) {
+                    if (--pending === 0) {
+                        View.Cart.setTotal();
+                    }
+                    return;
                 }
-            })
-            .fail((err) => {})
-            .always(() => {});
+                var qty = Math.max(1, parseInt(it.qty, 10) || 1);
+                Api.Product.GetOneItem(vid)
+                    .done((res) => {
+                        if (res && res.data) {
+                            View.Cart.render(res.data, qty, vid);
+                        }
+                    })
+                    .fail(() => {
+                        if (LayoutView.CartLocal.removeItemByVarId) {
+                            LayoutView.CartLocal.removeItemByVarId(vid);
+                        }
+                    })
+                    .always(() => {
+                        if (--pending === 0) {
+                            View.Cart.setTotal();
+                        }
+                    });
+            })(i);
+        }
     }
     function getNewArrivals() {
         Api.Product.NewArrivals()
