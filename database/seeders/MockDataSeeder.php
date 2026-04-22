@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Hash;
 class MockDataSeeder extends Seeder
 {
     /**
-     * Dữ liệu demo: danh mục, sản phẩm, biến thể, khách, đơn, kho, slider.
+     * Dữ liệu demo shop thời trang (quần áo): danh mục, sản phẩm, biến thể, khách, đơn, kho, slider.
      * Bỏ qua nếu đã có sản phẩm (tránh chạy lặp gây trùng).
      */
     public function run(): void
@@ -30,20 +30,20 @@ class MockDataSeeder extends Seeder
         }
 
         $c1 = DB::table('category')->insertGetId([
-            'name' => 'Giày thể thao', 'slug' => 'giay-the-thao', 'status' => 1,
+            'name' => 'Áo', 'slug' => 'ao', 'status' => 1,
             'created_at' => $now, 'updated_at' => $now,
         ]);
         $c2 = DB::table('category')->insertGetId([
-            'name' => 'Phụ kiện', 'slug' => 'phu-kien', 'status' => 1,
+            'name' => 'Quần', 'slug' => 'quan', 'status' => 1,
             'created_at' => $now, 'updated_at' => $now,
         ]);
 
         $b1 = DB::table('brand')->insertGetId([
-            'name' => 'Ekka Sport', 'description' => 'Thương hiệu demo nội bộ', 'status' => 1,
+            'name' => 'Ekka Basic', 'description' => 'Thời trang cơ bản, bền màu, form chuẩn.', 'status' => 1,
             'created_at' => $now, 'updated_at' => $now,
         ]);
         $b2 = DB::table('brand')->insertGetId([
-            'name' => 'Active Line', 'description' => 'Bộ sưu tập mẫu', 'status' => 1,
+            'name' => 'Urban Line', 'description' => 'Phong cách streetwear đô thị cho giới trẻ.', 'status' => 1,
             'created_at' => $now, 'updated_at' => $now,
         ]);
 
@@ -60,45 +60,45 @@ class MockDataSeeder extends Seeder
             'created_at' => $now, 'updated_at' => $now,
         ]);
 
+        $sS = DB::table('size')->insertGetId([
+            'name' => 'S', 'status' => 1, 'created_at' => $now, 'updated_at' => $now,
+        ]);
         $sM = DB::table('size')->insertGetId([
-            'name' => '38', 'status' => 1, 'created_at' => $now, 'updated_at' => $now,
+            'name' => 'M', 'status' => 1, 'created_at' => $now, 'updated_at' => $now,
         ]);
         $sL = DB::table('size')->insertGetId([
-            'name' => '40', 'status' => 1, 'created_at' => $now, 'updated_at' => $now,
-        ]);
-        $sXL = DB::table('size')->insertGetId([
-            'name' => '42', 'status' => 1, 'created_at' => $now, 'updated_at' => $now,
+            'name' => 'L', 'status' => 1, 'created_at' => $now, 'updated_at' => $now,
         ]);
 
-        $mFabric = DB::table('material')->insertGetId([
-            'name' => 'Lưới & EVA', 'status' => 1, 'created_at' => $now, 'updated_at' => $now,
+        $mCotton = DB::table('material')->insertGetId([
+            'name' => 'Cotton 100%', 'status' => 1, 'created_at' => $now, 'updated_at' => $now,
         ]);
-        $mLeather = DB::table('material')->insertGetId([
-            'name' => 'Da tổng hợp', 'status' => 1, 'created_at' => $now, 'updated_at' => $now,
+        $mDenim = DB::table('material')->insertGetId([
+            'name' => 'Denim co giãn', 'status' => 1, 'created_at' => $now, 'updated_at' => $now,
         ]);
 
         $p1 = DB::table('product')->insertGetId([
             'category_id' => $c1,
             'brand_id' => $b1,
-            'name' => 'Giày chạy bộ Ekka Pro',
-            'slug' => 'giay-chay-bo-ekka-pro',
+            'name' => 'Áo thun cổ tròn Ekka Basic',
+            'slug' => 'ao-thun-co-tron-ekka-basic',
             'images' => $img.','.$img,
             'banner' => $img,
-            'description' => 'Đệm nhẹ, đế chống trượt.',
-            'detail' => '<p>Ứng dụng tập luyện hàng ngày.</p>',
+            'description' => 'Cotton mịn, thấm mồ hôi, dễ phối với quần jean hoặc kaki.',
+            'detail' => '<p>Form regular, đường may kỹ, giữ form sau nhiều lần giặt.</p>',
             'discount' => 10,
             'trending' => 1,
             'status' => 1,
             'created_at' => $now, 'updated_at' => $now,
         ]);
         $p2 = DB::table('product')->insertGetId([
-            'category_id' => $c1,
+            'category_id' => $c2,
             'brand_id' => $b2,
-            'name' => 'Giày cầu lông Active',
-            'slug' => 'giay-cau-long-active',
+            'name' => 'Quần jean slim Urban',
+            'slug' => 'quan-jean-slim-urban',
             'images' => $img,
             'banner' => null,
-            'description' => 'Bám sân trong nhà tốt.',
+            'description' => 'Ống slim vừa, denim co giãn nhẹ, tôn dáng.',
             'detail' => null,
             'discount' => 0,
             'trending' => 0,
@@ -107,23 +107,23 @@ class MockDataSeeder extends Seeder
         ]);
 
         $pv1 = DB::table('product_var')->insertGetId([
-            'product_id' => $p1, 'color_id' => $colorRed, 'size_id' => $sM, 'material_id' => $mFabric,
-            'codeSKU' => 'EK-PRO-RED-38', 'prices' => 890000, 'stock' => 50, 'minQuantity' => 1, 'status' => 1,
+            'product_id' => $p1, 'color_id' => $colorRed, 'size_id' => $sS, 'material_id' => $mCotton,
+            'codeSKU' => 'EK-TS-RED-S', 'prices' => 350000, 'stock' => 50, 'minQuantity' => 1, 'status' => 1,
             'created_at' => $now, 'updated_at' => $now,
         ]);
         $pv2 = DB::table('product_var')->insertGetId([
-            'product_id' => $p1, 'color_id' => $colorBlue, 'size_id' => $sL, 'material_id' => $mFabric,
-            'codeSKU' => 'EK-PRO-BLUE-40', 'prices' => 890000, 'stock' => 30, 'minQuantity' => 1, 'status' => 1,
+            'product_id' => $p1, 'color_id' => $colorBlue, 'size_id' => $sM, 'material_id' => $mCotton,
+            'codeSKU' => 'EK-TS-BLUE-M', 'prices' => 350000, 'stock' => 30, 'minQuantity' => 1, 'status' => 1,
             'created_at' => $now, 'updated_at' => $now,
         ]);
         $pv3 = DB::table('product_var')->insertGetId([
-            'product_id' => $p2, 'color_id' => $colorBlack, 'size_id' => $sL, 'material_id' => $mLeather,
-            'codeSKU' => 'AC-BLK-40', 'prices' => 1250000, 'stock' => 20, 'minQuantity' => 1, 'status' => 1,
+            'product_id' => $p2, 'color_id' => $colorBlack, 'size_id' => $sM, 'material_id' => $mDenim,
+            'codeSKU' => 'UR-JN-BLK-M', 'prices' => 450000, 'stock' => 20, 'minQuantity' => 1, 'status' => 1,
             'created_at' => $now, 'updated_at' => $now,
         ]);
         $pv4 = DB::table('product_var')->insertGetId([
-            'product_id' => $p2, 'color_id' => $colorRed, 'size_id' => $sXL, 'material_id' => $mLeather,
-            'codeSKU' => 'AC-RED-42', 'prices' => 1250000, 'stock' => 12, 'minQuantity' => 1, 'status' => 1,
+            'product_id' => $p2, 'color_id' => $colorRed, 'size_id' => $sL, 'material_id' => $mDenim,
+            'codeSKU' => 'UR-JN-RED-L', 'prices' => 450000, 'stock' => 12, 'minQuantity' => 1, 'status' => 1,
             'created_at' => $now, 'updated_at' => $now,
         ]);
 
@@ -167,10 +167,10 @@ class MockDataSeeder extends Seeder
             'shipper_id' => $adminId,
             'customer_id' => $cust1,
             'status_customer' => 1,
-            'subtotal' => '1780000',
+            'subtotal' => '700000',
             'coupon' => '0',
             'discount' => '0',
-            'total' => '1780000',
+            'total' => '700000',
             'username' => 'Nguyễn Văn A',
             'email' => 'user1@example.com',
             'address' => 'Hà Nội',
@@ -184,12 +184,12 @@ class MockDataSeeder extends Seeder
         DB::table('order_detail')->insert([
             [
                 'order_id' => $orderId, 'product_id' => $pv1,
-                'quantity' => '1', 'price' => '890000', 'discount' => '0', 'total_price' => '890000',
+                'quantity' => '1', 'price' => '350000', 'discount' => '0', 'total_price' => '350000',
                 'suborder_status' => '0', 'status' => '1', 'created_at' => $now, 'updated_at' => $now,
             ],
             [
                 'order_id' => $orderId, 'product_id' => $pv2,
-                'quantity' => '1', 'price' => '890000', 'discount' => '0', 'total_price' => '890000',
+                'quantity' => '1', 'price' => '350000', 'discount' => '0', 'total_price' => '350000',
                 'suborder_status' => '0', 'status' => '1', 'created_at' => $now, 'updated_at' => $now,
             ],
         ]);
@@ -211,11 +211,11 @@ class MockDataSeeder extends Seeder
         ]);
         DB::table('warehouse_history_detail')->insert([
             [
-                'warehouse_history_id' => $whId, 'product_id' => $p1, 'price' => 700000, 'quantity' => 20, 'status' => '1',
+                'warehouse_history_id' => $whId, 'product_id' => $p1, 'price' => 180000, 'quantity' => 30, 'status' => '1',
                 'created_at' => $now, 'updated_at' => $now,
             ],
             [
-                'warehouse_history_id' => $whId, 'product_id' => $p2, 'price' => 900000, 'quantity' => 10, 'status' => '1',
+                'warehouse_history_id' => $whId, 'product_id' => $p2, 'price' => 240000, 'quantity' => 20, 'status' => '1',
                 'created_at' => $now, 'updated_at' => $now,
             ],
         ]);
