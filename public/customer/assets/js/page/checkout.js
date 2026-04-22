@@ -198,6 +198,7 @@ const View = {
                 localStorage.removeItem("quantity")
                 localStorage.removeItem("total_prices")
                 localStorage.removeItem("size")
+                localStorage.removeItem("color")
                 if (res.payment == 1) {
                     window.location.replace("/profile");
                 }else{

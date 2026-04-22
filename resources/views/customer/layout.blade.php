@@ -150,7 +150,6 @@
                                     <ul class="sub-menu category-nav-list">
                                     </ul>
                                 </li>
-                                <li><a href="/news">Tin tức</a></li>
                                 <li><span class="main-label-note-new" data-toggle="tooltip" title="NEW"></span><a
                                         href="/category?status=1">Đang giảm giá</a>
                                 </li>
