@@ -8,6 +8,38 @@ const View = {
     },
     table: {
         __generateDTRow(data) {
+            let metadata = `
+                <table class="meta-variant-table">
+                    <thead>
+                        <tr>
+                            <th>Kích cỡ</th>
+                            <th>Màu sắc</th>
+                            <th>Chất liệu</th>
+                            <th>Số lượng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.product_var
+                            .map((v) => {
+                                return `
+                                    <tr>
+                                        <td><span class="meta-item-table">${v.size_name}</span></td>
+                                        <td><span class="meta-item-table">${v.color_name}</span></td>
+                                        <td><span class="meta-item-table">${v.material_name}</span></td>
+                                        <td>
+                                            <span class="meta-item-table" style="${parseInt(v.minQuantity) >= parseInt(v.stock) ? "border: 1px solid red;" : ""}">
+                                                ${v.stock}
+                                            </span>
+                                        </td>
+                                   
+                                    </tr>
+                                `;
+                            })
+                            .join("")}
+                    </tbody>
+                </table>
+            `;
+
             return [
                 `<div class="id-order">${data.id}</div>`,
                 `<h5>${data.name}</h5>
@@ -24,8 +56,8 @@ const View = {
                 `,
                 `<p>Danh mục: <span class="meta-item-table">${data.category_name ?? "Chưa có"}</span></p>
                 <p>Thương hiệu: <span class="meta-item-table">${data.brand_name ?? "Chưa có"}</span></p>
-                <p>Còn lại: <span class="meta-item-table">${data.quantity == null || data.quantity == 0 ? "Hết hàng" : data.quantity}</span></p>`,
-                ,
+                <p>Mô tả ngắn:  ${data.description ?? "Chưa có"} </p>`,
+                metadata,
                 `<label class="switch" data-id="${data.id}" data-status="${data.status == "1" ? "0" : "1"}" atr="Status"> <span class="slider round ${data.trending == "1" ? "active" : ""}"></span> </label>`,
                 `<div class="view-data modal-control main-tab-control" style="cursor: pointer" atr="View" data-id="${data.id}"><i class="feather-eye"></i></div>
                 <div class="view-data modal-control" style="cursor: pointer" atr="Delete" data-id="${data.id}"><i class="feather-trash"></i></div>`,
@@ -49,13 +81,13 @@ const View = {
                     title: "Thông tin",
                     name: "name",
                     orderable: true,
-                    width: "20%",
+                    width: "15%",
                 },
                 {
-                    title: "Metadata",
+                    title: "Biến thể",
                     name: "icon",
                     orderable: true,
-                    width: "20%",
+                    width: "30%",
                 },
                 {
                     title: "Trending",
@@ -130,6 +162,8 @@ const View = {
             // SKU & Price
             row.querySelector(".var-sku").value = selectedVal.sku ?? "";
             row.querySelector(".var-price").value = selectedVal.price ?? "";
+            row.querySelector(".var-minQuantity").value =
+                selectedVal.minQuantity ?? "";
 
             // Remove handler
             row.querySelector(".btn-remove-var").onclick = function () {
@@ -151,12 +185,15 @@ const View = {
                     row.querySelector(".var-material")?.value ?? "";
                 const sku = row.querySelector(".var-sku")?.value ?? "";
                 const price = row.querySelector(".var-price")?.value ?? "";
+                const minQuantity =
+                    row.querySelector(".var-minQuantity")?.value ?? "";
                 variants.push({
                     size,
                     color,
                     material,
                     sku,
                     price,
+                    minQuantity,
                 });
             });
             return variants;
@@ -241,6 +278,7 @@ const View = {
             $(".product-prices").val("");
             $(".product-images").val("");
             $(".metadata-render").find(".metadata-item").remove();
+            $(".product-var-list").find(".product-var-row").remove();
             $(".product-description").val("");
             $(".multi-upload .prev-upload").remove();
             $(".multi-upload .image-loader").remove();

@@ -27,12 +27,24 @@ class ProductRepository extends BaseRepository implements RepositoryInterface
     }
     public function get_product()
     {
-        return DB::table('product')
+        $products = DB::table('product')
             ->leftJoin('category', 'category.id', '=', 'product.category_id')
             ->leftJoin('brand', 'brand.id', '=', 'product.brand_id')
             ->select('product.*', 'category.name as category_name', 'brand.name as brand_name')
             ->orderBy('product.created_at', 'desc')
             ->get();
+
+        foreach ($products as $product) {
+            $product->product_var = DB::table('product_var')
+                ->leftJoin('size', 'size.id', '=', 'product_var.size_id')
+                ->leftJoin('color', 'color.id', '=', 'product_var.color_id')
+                ->leftJoin('material', 'material.id', '=', 'product_var.material_id')
+                ->select('product_var.*', 'size.name as size_name', 'color.name as color_name', 'material.name as material_name')
+                ->where('product_id', $product->id)
+                ->get()
+                ->toArray();
+        }
+        return $products;
     }
     public function get_discount()
     {
@@ -47,18 +59,38 @@ class ProductRepository extends BaseRepository implements RepositoryInterface
 
     public function get_one($id)
     {
-        $sql = "SELECT product.*,
-                    category.name as category_name
-                FROM product 
-                LEFT JOIN category
-                ON category.id = product.category_id
-                WHERE product.id = " . $id;
-        return DB::select($sql);
+        $product = DB::table('product')
+            ->leftJoin('category', 'category.id', '=', 'product.category_id')
+            ->select('product.*', 'category.name as category_name')
+            ->where('product.id', $id)
+            ->first();
+
+        $product->product_var = DB::table('product_var')
+            ->leftJoin('size', 'size.id', '=', 'product_var.size_id')
+            ->leftJoin('color', 'color.id', '=', 'product_var.color_id')
+            ->leftJoin('material', 'material.id', '=', 'product_var.material_id')
+            ->select('product_var.*', 'size.name as size_name', 'color.name as color_name', 'material.name as material_name')
+            ->where('product_id', $product->id)
+            ->get()
+            ->toArray();
+        return $product;
     }
     public function update_trending($id)
     {
         $sql = 'UPDATE product set trending = !trending WHERE id = ' . $id;
         DB::select($sql);
+    }
+
+    public function get_var($product_id)
+    {
+
+        return DB::table('product_var')
+            ->leftJoin('size', 'size.id', '=', 'product_var.size_id')
+            ->leftJoin('color', 'color.id', '=', 'product_var.color_id')
+            ->leftJoin('material', 'material.id', '=', 'product_var.material_id')
+            ->select('product_var.*', 'size.name as size_name', 'color.name as color_name', 'material.name as material_name')
+            ->where('product_id', $product_id)
+            ->get();
     }
 
 

@@ -2,7 +2,7 @@
 @section('title', 'Sản phẩm')
 
 @section('css')
-    <link href="{{ asset('manager/assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.css') }}" rel="stylesheet">
+<link href="{{ asset('manager/assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.css') }}" rel="stylesheet">
 @endsection()
 
 
@@ -15,14 +15,14 @@
                 <div class="col-xs-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
                     <div class="card">
                         <div class="card-body">
-                            <a href="#" class="btn btn-default btn-sm flex-right w-100 modal-control" data-toggle="modal" atr="Create">Nhập kho<i class="fas fa-plus m-l-5"></i></a> 
-                            <div class="status-list"> 
-                                <div class="status-event" atr="Item" data-id="">
+                            <a href="#" class="btn btn-default btn-sm flex-right w-100 modal-control" data-toggle="modal" atr="Create">Nhập kho<i class="fas fa-plus m-l-5"></i></a>
+                            <div class="status-list">
+                                <!-- <div class="status-event" atr="Item" data-id="">
                                     <div class="d-flex align-items-center">
                                         <div class="badge badge-primary badge-dot m-r-10"></div>
                                         <div>Kho hàng</div>
                                     </div>
-                                </div>
+                                </div> -->
                                 <div class="status-event is-select" atr="History" data-id="">
                                     <div class="d-flex align-items-center">
                                         <div class="badge badge-success badge-dot m-r-10"></div>
@@ -42,7 +42,7 @@
                         </div>
                     </div>
                 </div>
-            </div>      
+            </div>
         </div>
     </div>
 </div>
@@ -59,14 +59,14 @@
                 <h5 class="modal-title"> </h5>
             </div>
             <div class="modal-body scrollable ps-container ps-theme-default">
-                
+
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default close-modal m-r-10" ></button>
+                <button type="button" class="btn btn-default close-modal m-r-10"></button>
                 <button type="button" class="btn btn-primary push-modal" atr="Push"></button>
             </div>
         </div>
-    </div>            
+    </div>
 </div>
 <div class="modal modal-right fade quick-view show" id="update-modal">
     <div class="modal-dialog warehouse-modal-view">
@@ -75,21 +75,21 @@
                 <h5 class="modal-title"> </h5>
             </div>
             <div class="modal-body scrollable ps-container ps-theme-default">
-                
+
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default close-modal m-r-10" ></button>
+                <button type="button" class="btn btn-default close-modal m-r-10"></button>
                 <button type="button" class="btn btn-primary push-modal" atr="Push"></button>
             </div>
         </div>
-    </div>            
+    </div>
 </div>
 
 
 @endsection()
 
 @section('js')
-    
-    <script src="{{ asset('manager/assets/js/page/warehouse.js') }}"></script>
+
+<script src="{{ asset('manager/assets/js/page/warehouse.js') }}"></script>
 
 @endsection()

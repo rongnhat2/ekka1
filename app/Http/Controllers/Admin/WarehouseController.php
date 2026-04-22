@@ -22,20 +22,24 @@ class WarehouseController extends Controller
     protected $warehouse_history;
     protected $warehouse_history_detail;
 
-    public function __construct(Warehouse $warehouse, WarehouseHistory $warehouse_history, WarehouseHistoryDetail $warehouse_history_detail){
+    public function __construct(Warehouse $warehouse, WarehouseHistory $warehouse_history, WarehouseHistoryDetail $warehouse_history_detail)
+    {
         $this->warehouse                    = new WarehouseRepository($warehouse);
         $this->warehouse_history            = new WarehouseRepository($warehouse_history);
         $this->warehouse_history_detail     = new WarehouseRepository($warehouse_history_detail);
     }
 
-    public function index(){
+    public function index()
+    {
         return view("admin.manager.warehouse");
     }
-    public function get_item(){
+    public function get_item()
+    {
         $data = $this->warehouse_history->get_item_all();
         return  $this->warehouse_history->send_response(201, $data, null);;
     }
-    public function get_history(){
+    public function get_history()
+    {
         $data_full = $this->warehouse_history->get_history_all();
         $data = [];
         foreach ($data_full as $key => $value) {
@@ -48,12 +52,14 @@ class WarehouseController extends Controller
         }
         return  $this->warehouse_history->send_response(201, $data, null);;
     }
-    public function get_ware_one($id){
+    public function get_ware_one($id)
+    {
         $data = $this->warehouse_history->get_ware_one($id);
         return  $this->warehouse_history->send_response(201, $data, null);;
     }
 
-    public function store(Request $request){
+    public function store(Request $request)
+    {
         $warehouse_data = json_decode($request->data_metadata);
         $token = $request->cookie('_token__');
         list($user_id, $token) = explode('$', $token, 2);
@@ -70,8 +76,8 @@ class WarehouseController extends Controller
             $this->warehouse_history_detail->create($input_detail);
             $warehouse_item = $this->warehouse->warehouse_get_item($data_item->item);
             if (count($warehouse_item) > 0) {
-                $this->warehouse_history->update_item($data_item->item,$warehouse_item[0]->quantity += $data_item->quantity);
-            }else{
+                $this->warehouse_history->update_item($data_item->item, $warehouse_item[0]->stock += $data_item->quantity);
+            } else {
                 $warehouse_create = [
                     "product_id"    => $data_item->item,
                     "quantity"      => $data_item->quantity,
@@ -81,5 +87,4 @@ class WarehouseController extends Controller
         }
         return $request;
     }
-    
 }

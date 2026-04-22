@@ -14,6 +14,43 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::prefix('customer')->group(function () {
+    Route::prefix('category')->group(function () {
+        Route::get('get', 'Customer\CategoryController@get')->name('customer.category.get');
+    });
+    Route::prefix('product')->group(function () {
+        Route::get('get-all', 'Customer\ProductController@get_all')->name('customer.product.get.all');
+        // 
+        // 
+        // Route::get('get-discount', 'Customer\ProductController@get_discount')->name('customer.product.get.discount');
+        // Route::get('get-discount-first', 'Customer\ProductController@get_discount_first')->name('customer.product.get.discount');
+
+        // 
+        // 
+        // Route::get('get-related/{id}', 'Customer\ProductController@get_related')->name('customer.product.get.related');
+        // Route::get('get-data-category', 'Customer\ProductController@get_data_category')->name('admin.product.get_data_category');
+
+        Route::get('get-one-cart/{id}', 'Customer\ProductController@get_one_cart')->name('customer.product.get.cart');
+        Route::get('get-related/{id}', 'Customer\ProductController@get_related')->name('customer.product.get.related');
+        Route::get('get-one/{id}', 'Customer\ProductController@get_one')->name('customer.product.get.one');
+        Route::get('get-trending', 'Customer\ProductController@get_trending')->name('customer.product.get.trending');
+        Route::get('get-best-sale', 'Customer\ProductController@get_best_sale')->name('customer.product.get.best_sale');
+        Route::get('get-new-arrivals', 'Customer\ProductController@get_new_arrivals')->name('customer.product.get.new_arrivals');
+        Route::get('get-with-category/{id}', 'Customer\ProductController@get_with_category')->name('admin.product.get_with_category');
+    });
+    Route::prefix('order')->group(function () {
+        Route::post('create', 'Customer\OrderController@create')->name('customer.order.create');
+        Route::get('get/{id}', 'Customer\OrderController@get')->name('customer.order.get');
+    });
+    Route::prefix('profile')->group(function () {
+        Route::get('get', 'Customer\CustomerController@get_profile')->name('customer.profile.get');
+        Route::post('update-profile', 'Customer\CustomerController@update_profile')->name('customer.profile.update');
+        Route::get('get-order', 'Customer\CustomerController@get_order')->name('customer.profile.get_order');
+
+        Route::post('update-password', 'Customer\CustomerController@update_password')->name('customer.password.update');
+    });
+});
+
 
 // Route::middleware(['AuthAdmin:admin'])->group(function () {
 Route::prefix('admin')->group(function () {
@@ -64,7 +101,14 @@ Route::prefix('admin')->group(function () {
         Route::post('store', 'Admin\ProductController@store')->name('admin.product.store');
         Route::post('/update', 'Admin\ProductController@update')->name('admin.product.update');
         Route::get('/delete/{id}', 'Admin\ProductController@delete')->name('admin.product.delete');
+
+        Route::get('get-var', 'Admin\ProductController@get_var')->name('admin.product.get_var');
     });
 
+    Route::prefix('warehouse')->group(function () {
+        Route::post('store', 'Admin\WarehouseController@store')->name('admin.warehouse.store');
+        Route::get('get-history', 'Admin\WarehouseController@get_history')->name('admin.warehouse.get_history');
+        Route::get('get-ware-one/{id}', 'Admin\WarehouseController@get_ware_one')->name('admin.warehouse.get_ware_one');
+    });
 });
 // });

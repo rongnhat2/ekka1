@@ -280,6 +280,15 @@ const Api = {
                 id: id ?? "",
             },
         });
+    Api.Product.GetVar = (product_id) =>
+        $.ajax({
+            url: `/api/admin/product/get-var`,
+            method: "GET",
+            dataType: "json",
+            data: {
+                product_id: product_id ?? "",
+            },
+        });
 })();
 
 //Order

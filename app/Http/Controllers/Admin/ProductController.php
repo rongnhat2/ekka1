@@ -53,7 +53,6 @@ class ProductController extends Controller
     }
     public function store(Request $request)
     {
-        dd($request);
         $data = [
             "category_id"   => $request->data_category,
             "brand_id"   => $request->data_brand,
@@ -75,6 +74,20 @@ class ProductController extends Controller
             $data['images'] = implode(",", $image_list);
         }
         $data_return = $this->product->create($data);
+        $product_var = json_decode($request->data_product_var, true);
+        foreach ($product_var as $var) {
+            DB::table('product_var')->insert([
+                "product_id" => $data_return->id,
+                "size_id" => $var["size"],
+                "color_id" => $var["color"],
+                "material_id" => $var["material"],
+                "codeSKU" => $var["sku"],
+                "prices" => $var["price"],
+                "stock" => 0,
+                "minQuantity" => $var["minQuantity"],
+                "status" => 1,
+            ]);
+        }
 
         return $this->product->send_response(201, $data_return, null);
     }
@@ -118,6 +131,12 @@ class ProductController extends Controller
     {
         $this->product->update(["discount" => 0], $id);
         return $this->product->send_response(200, null, null);
+    }
+
+    public function get_var(Request $request)
+    {
+        $data = $this->product->get_var($request->product_id);
+        return $this->product->send_response(201, $data, null);
     }
 
     public function delete($id)
