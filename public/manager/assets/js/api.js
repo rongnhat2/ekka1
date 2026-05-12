@@ -11,6 +11,7 @@ const Api = {
     Statistic: {},
     Carousel: {},
     News: {},
+    Customer: {},
 };
 (() => {
     $.ajaxSetup({
@@ -35,6 +36,20 @@ const Api = {
             data: data,
             contentType: false,
             processData: false,
+        });
+})();
+
+//Customer
+(() => {
+    Api.Customer.GetAll = () =>
+        $.ajax({
+            url: `/api/admin/customer/get`,
+            method: "GET",
+        });
+    Api.Customer.getOne = (id) =>
+        $.ajax({
+            url: `/api/admin/customer/get-one/${id}`,
+            method: "GET",
         });
 })();
 

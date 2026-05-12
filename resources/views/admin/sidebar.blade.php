@@ -72,6 +72,12 @@
                         <span>Sản phẩm</span>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route("admin.customer.index") }}" class=" waves-effect">
+                        <i class=" feather-package "></i>
+                        <span>Khách hàng</span>
+                    </a>
+                </li>
 
             </ul>
         </div>

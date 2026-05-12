@@ -15,59 +15,77 @@ class CustomerRepository extends BaseRepository implements RepositoryInterface
     {
         $this->model = $model;
     }
-    public function check_email($email){
+    public function check_email($email)
+    {
         return $this->model->where('email', '=', $email)->first() ? true : false;
     }
-    public function get_profile_email($email){
+    public function get_profile_email($email)
+    {
         return $this->model->where('email', '=', $email)->first();
     }
-    public function checkEmailPassword($request){
+    public function checkEmailPassword($request)
+    {
         $user = $this->model->where('email', '=', $request->email)->first();
         if ($user) {
             return Hash::check($request->password, $user->password) ? $user->id : false;
-        }else{
+        } else {
             return false;
         }
     }
-    public function get_profile($id){
+    public function get_profile($id)
+    {
         $sql = "SELECT *
                 FROM customer_detail
-                WHERE customer_id = ".$id;
+                WHERE customer_id = " . $id;
         return DB::select($sql);
     }
-    public function update_profile($id, $data){
+    public function update_profile($id, $data)
+    {
         $sql = "UPDATE customer_detail
-                    SET name = '".$data["name"]."', phone = '".$data["phone"]."', address = '".$data["address"]."'
-                    WHERE customer_id = ".$id;
+                    SET name = '" . $data["name"] . "', phone = '" . $data["phone"] . "', address = '" . $data["address"] . "'
+                    WHERE customer_id = " . $id;
         return DB::select($sql);
     }
-    public function get_order($id){
+    public function get_order($id)
+    {
         $sql = "SELECT *
                 FROM order_time
-                WHERE customer_id = ".$id."
+                WHERE customer_id = " . $id . "
                 ORDER BY created_at DESC";
         return DB::select($sql);
     }
-    public function get_oldpass($id){
+    public function get_oldpass($id)
+    {
         $sql = "SELECT *
                 FROM customer_auth
-                WHERE id = ".$id;
+                WHERE id = " . $id;
         return DB::select($sql);
     }
     // # Tạo token client
-    public function createTokenClient($id){
+    public function createTokenClient($id)
+    {
         return $id . '$' . Hash::make($id . '$' . $this->model->findOrFail($id)->secret_key);
     }
-    public function check_login($request){
+    public function check_login($request)
+    {
         $user = $this->model->where('email', '=', $request->email)->first();
         if ($user) {
             return Hash::check($request->password, $user->password) ? $user->id : false;
-        }else{
+        } else {
             return false;
         }
     }
-    public function get_by_email($email){
+    public function get_by_email($email)
+    {
         return $this->model->where('email', '=', $email)->first();
     }
-    
+
+    public function get_customer()
+    {
+        return DB::table('customer')->leftJoin('customer_detail', 'customer.id', '=', 'customer_detail.customer_id')->leftJoin('customer_auth', 'customer.id', '=', 'customer_auth.customer_id')->get();
+    }
+    public function get_one($id)
+    {
+        return DB::table('customer')->leftJoin('customer_detail', 'customer.id', '=', 'customer_detail.customer_id')->leftJoin('customer_auth', 'customer.id', '=', 'customer_auth.customer_id')->where('customer.id', $id)->first();
+    }
 }

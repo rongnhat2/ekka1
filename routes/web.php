@@ -83,5 +83,8 @@ Route::middleware(['AuthAdmin:admin'])->group(function () {
         Route::prefix('order')->group(function () {
             Route::get('/', 'Admin\OrderController@index')->name('admin.order.index');
         });
+        Route::prefix('customer')->group(function () {
+            Route::get('/', 'Admin\CustomerController@index')->name('admin.customer.index');
+        });
     });
 });

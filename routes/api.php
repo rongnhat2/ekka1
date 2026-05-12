@@ -123,5 +123,10 @@ Route::prefix('admin')->group(function () {
         Route::get('get-history', 'Admin\WarehouseController@get_history')->name('admin.warehouse.get_history');
         Route::get('get-ware-one/{id}', 'Admin\WarehouseController@get_ware_one')->name('admin.warehouse.get_ware_one');
     });
+
+    Route::prefix('customer')->group(function () {
+        Route::get('get', 'Admin\CustomerController@get')->name('admin.customer.get');
+        Route::get('/get-one/{id}', 'Admin\CustomerController@get_one')->name('admin.customer.get_one');
+    });
 });
 // });
